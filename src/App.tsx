@@ -99,7 +99,7 @@ export const App: React.FC = () => {
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center animate-bounce text-xl font-bold shadow-lg shadow-purple-950">
           ⚡
         </div>
-        <div className="text-lg font-bold tracking-wide">Cargando Facturalia IGIC...</div>
+        <div className="text-lg font-bold tracking-wide">Cargando Verifactu Gratuito Taratic...</div>
         <p className="text-xs text-slate-400">Cargando motor SQLite WASM y sistema de archivos local</p>
       </div>
     );

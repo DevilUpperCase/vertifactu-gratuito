@@ -28,11 +28,11 @@
   ],
   "nativeBlockList": [],
   "globalVariables": {
-    "TEST_VAR": "Facturalia IGIC Neutralino App"
+    "TEST_VAR": "Verifactu Gratuito Taratic App"
   },
   "modes": {
     "window": {
-      "title": "Facturalia - Gestión de Facturas e IGIC / Verifactu",
+      "title": "Verifactu Gratuito Taratic",
       "width": 1280,
       "height": 850,
       "minWidth": 1024,
@@ -47,7 +47,7 @@
     }
   },
   "cli": {
-    "binaryName": "facturalia-app",
+    "binaryName": "verifactu-gratuito-taratic",
     "resourcesPath": "/dist/",
     "extensionsPath": "/extensions/",
     "clientLibrary": "/neutralino.js",

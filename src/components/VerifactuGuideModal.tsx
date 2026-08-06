@@ -91,7 +91,7 @@ export const VerifactuGuideModal: React.FC<VerifactuGuideModalProps> = ({ isOpen
 
           {/* Detailed requirements list */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white text-base">Requisitos técnicos integrados en Facturalia:</h4>
+            <h4 className="font-bold text-white text-base">Requisitos técnicos integrados en Verifactu Gratuito Taratic:</h4>
             <ul className="space-y-2 text-xs">
               <li className="flex items-start gap-2">
                 <FontAwesomeIcon icon={faCheckCircle} className="text-emerald-400 mt-0.5 shrink-0" />

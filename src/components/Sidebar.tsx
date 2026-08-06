@@ -37,9 +37,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div>
           <h1 className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-white">
-            Facturalia
+            Verifactu Gratuito
           </h1>
-          <p className="text-xs text-purple-300/60 font-medium">IGIC Canarias & Verifactu</p>
+          <p className="text-xs text-purple-300/60 font-medium">Taratic IGIC & Verifactu</p>
         </div>
       </div>
 

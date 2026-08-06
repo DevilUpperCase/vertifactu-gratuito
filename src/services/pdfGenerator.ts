@@ -256,7 +256,7 @@ export function generateInvoicePdf(
   doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    `Facturalia Canarias IGIC - Documento generado automáticamente acorde a la normativa fiscal de Canarias y Ley Antifraude Verifactu`,
+    `Verifactu Gratuito Taratic - Documento generado automáticamente acorde a la normativa fiscal de Canarias y Ley Antifraude Verifactu`,
     105,
     pageHeight - 8,
     { align: 'center' }

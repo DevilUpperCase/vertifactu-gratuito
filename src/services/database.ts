@@ -136,7 +136,7 @@ export async function autoSave(): Promise<void> {
     if (isNativeRuntime() && window.Neutralino.filesystem) {
       const dbPath = await getDbFilePath();
       await window.Neutralino.filesystem.writeBinaryFile(dbPath, cleanBuffer);
-      console.log('Facturalia DB guardada en el disco mediante NeutralinoJS:', dbPath);
+      console.log('Verifactu Gratuito Taratic DB guardada en el disco mediante NeutralinoJS:', dbPath);
     } else {
       // Fallback a localStorage para entorno de navegador
       let binaryString = '';
@@ -145,7 +145,7 @@ export async function autoSave(): Promise<void> {
         binaryString += String.fromCharCode(bytes[i]);
       }
       localStorage.setItem('invoices_app_db_fallback', btoa(binaryString));
-      console.log('Facturalia DB guardada en localStorage fallback');
+      console.log('Verifactu Gratuito Taratic DB guardada en localStorage fallback');
     }
   } catch (err: any) {
     console.error('Error durante autoSave DB:', err?.message || JSON.stringify(err) || err);

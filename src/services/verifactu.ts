@@ -111,7 +111,7 @@ export async function processVerifactuInvoice(
       <NombreRazon>${escapeXml(settings.issuer_name)}</NombreRazon>
     </ObligadoEmision>
     <SistemaInformatico>
-      <NombreSistema>Facturalia Neutralino App</NombreSistema>
+      <NombreSistema>Verifactu Gratuito Taratic App</NombreSistema>
       <Version>1.0.0</Version>
     </SistemaInformatico>
   </Cabecera>
