@@ -23,6 +23,8 @@ import {
   faQrcode,
   faSearch,
   faSave,
+  faGlobe,
+  faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -48,7 +50,9 @@ library.add(
   faInfoCircle,
   faQrcode,
   faSearch,
-  faSave
+  faSave,
+  faGlobe,
+  faEnvelope
 );
 
 export {
@@ -75,4 +79,6 @@ export {
   faQrcode,
   faSearch,
   faSave,
+  faGlobe,
+  faEnvelope,
 };

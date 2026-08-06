@@ -33,6 +33,7 @@
   "modes": {
     "window": {
       "title": "Verifactu Gratuito Taratic",
+      "icon": "/public/favicon.webp",
       "width": 1280,
       "height": 850,
       "minWidth": 1024,

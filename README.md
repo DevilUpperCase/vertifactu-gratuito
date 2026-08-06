@@ -1,4 +1,4 @@
-# Facturalia — Gestión de Facturas e IGIC / Verifactu
+# Verifactu Gratuito Taratic — Software gratuito, completamente local y de código abierto para pymes y autónomos de España
 
 Desktop app built with **React 18 + TypeScript + Vite 6 + Tailwind CSS 4 + Neutralino.js**, with local storage via sql.js (SQLite WASM) and PDF generation with jsPDF.
 

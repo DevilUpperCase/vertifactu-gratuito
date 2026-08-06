@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faShieldAlt, faLock, faCertificate, faQrcode, faCheckCircle, faExclamationTriangle } from '../utils/icons';
+import { faTimes, faShieldAlt, faLock, faCertificate, faQrcode, faCheckCircle, faExclamationTriangle, faGlobe, faEnvelope } from '../utils/icons';
 
 interface VerifactuGuideModalProps {
   isOpen: boolean;
@@ -110,10 +110,29 @@ export const VerifactuGuideModal: React.FC<VerifactuGuideModalProps> = ({ isOpen
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-900 border-t border-purple-500/20 flex justify-end">
+        <div className="p-4 bg-slate-900 border-t border-purple-500/20 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3 text-xs text-slate-400">
+            <a
+              href="https://taratic.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-purple-300 hover:text-pink-300 font-semibold transition-colors flex items-center gap-1"
+            >
+              <FontAwesomeIcon icon={faGlobe} className="text-[10px]" />
+              taratic.com
+            </a>
+            <span>•</span>
+            <a
+              href="mailto:contacto@taratic.com"
+              className="hover:text-pink-300 transition-colors flex items-center gap-1"
+            >
+              <FontAwesomeIcon icon={faEnvelope} className="text-[10px]" />
+              contacto@taratic.com
+            </a>
+          </div>
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-medium text-sm shadow-lg shadow-purple-950/50"
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-medium text-sm shadow-lg shadow-purple-950/50"
           >
             Entendido
           </button>

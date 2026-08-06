@@ -6,6 +6,8 @@ import {
   faUsers,
   faCog,
   faShieldAlt,
+  faGlobe,
+  faEnvelope,
 } from '../utils/icons';
 
 interface SidebarProps {
@@ -59,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <FontAwesomeIcon
                 icon={item.icon}
-                className={`text-base ${isActive ? 'text-pink-400' : 'text-slate-500'}`}
+                className={`text-base ${isActive ? 'text-pink-400' : 'text-slate-400'}`}
               />
               <span>{item.label}</span>
             </button>
@@ -94,9 +96,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 text-center border-t border-purple-900/20 text-[11px] text-slate-500">
-        NeutralinoJS + SQLite WASM • v1.0.0
+      {/* Footer Info & Taratic Support */}
+      <div className="p-4 text-center border-t border-purple-900/20 text-[11px] text-slate-400 space-y-1">
+        <div className="flex items-center justify-center gap-3">
+          <a
+            href="https://taratic.com"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-pink-300 transition-colors flex items-center gap-1 font-semibold text-purple-300"
+          >
+            <FontAwesomeIcon icon={faGlobe} className="text-[10px]" />
+            taratic.com
+          </a>
+          <span>•</span>
+          <a
+            href="mailto:contacto@taratic.com"
+            className="hover:text-pink-300 transition-colors flex items-center gap-1"
+          >
+            <FontAwesomeIcon icon={faEnvelope} className="text-[10px]" />
+            contacto@taratic.com
+          </a>
+        </div>
+        <div className="text-[10px] text-slate-500">NeutralinoJS + SQLite WASM • v1.0.0</div>
       </div>
     </aside>
   );

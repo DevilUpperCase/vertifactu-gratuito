@@ -13,7 +13,7 @@ export const Header: React.FC<HeaderProps> = ({ title, verifactuEnabled, onNewIn
     <header className="h-20 bg-slate-900/60 backdrop-blur-md border-b border-purple-900/20 px-8 flex items-center justify-between z-10">
       <div>
         <h1 className="text-2xl font-bold text-white tracking-tight">{title}</h1>
-        <p className="text-xs text-slate-400">Canarias (IGIC 7%) • Gestión Inalterable de Facturación</p>
+        <p className="text-xs text-slate-400">España (Verifactu & IGIC/IVA) • Software Gratuito y 100% Local</p>
       </div>
 
       <div className="flex items-center gap-4">

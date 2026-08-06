@@ -9,6 +9,8 @@ import {
   faUpload,
   faLock,
   faInfoCircle,
+  faGlobe,
+  faEnvelope,
 } from '../utils/icons';
 import { Settings } from '../types';
 import { getSettings, saveSettings } from '../services/database';
@@ -297,6 +299,37 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onOpenGuide, onSetti
                 className="w-full md:w-80 px-4 py-2 rounded-xl bg-slate-900 border border-purple-500/30 text-white text-xs focus:outline-none focus:border-pink-500/50"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Section 3: Soporte y Referencia Taratic */}
+        <div className="bg-gradient-to-r from-purple-950/40 via-slate-900 to-pink-950/30 border border-purple-500/30 rounded-3xl p-6 backdrop-blur-xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 className="font-bold text-white text-sm flex items-center gap-2 mb-1">
+              <FontAwesomeIcon icon={faGlobe} className="text-pink-400" />
+              <span>Desarrollado y Mantenido por Taratic</span>
+            </h4>
+            <p className="text-xs text-purple-200/70">
+              Verifactu Gratuito es un software gratuito, completamente local y de código abierto para pymes y autónomos de España.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-xs font-semibold shrink-0">
+            <a
+              href="https://taratic.com"
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 transition-all flex items-center gap-2"
+            >
+              <FontAwesomeIcon icon={faGlobe} />
+              <span>taratic.com</span>
+            </a>
+            <a
+              href="mailto:contacto@taratic.com"
+              className="px-4 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 text-pink-200 border border-pink-500/40 transition-all flex items-center gap-2"
+            >
+              <FontAwesomeIcon icon={faEnvelope} />
+              <span>contacto@taratic.com</span>
+            </a>
           </div>
         </div>
 
