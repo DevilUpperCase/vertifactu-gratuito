@@ -25,6 +25,8 @@ import {
   faSave,
   faGlobe,
   faEnvelope,
+  faSun,
+  faMoon,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -52,7 +54,9 @@ library.add(
   faSearch,
   faSave,
   faGlobe,
-  faEnvelope
+  faEnvelope,
+  faSun,
+  faMoon
 );
 
 export {
@@ -81,4 +85,6 @@ export {
   faSave,
   faGlobe,
   faEnvelope,
+  faSun,
+  faMoon,
 };

@@ -18,6 +18,7 @@ interface InvoiceFormModalProps {
   onClose: () => void;
   initialInvoice?: Invoice | null;
   onInvoiceSaved: () => void;
+  theme?: 'dark' | 'light';
 }
 
 export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
@@ -25,9 +26,12 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   onClose,
   initialInvoice,
   onInvoiceSaved,
+  theme = 'dark',
 }) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+
+  const isDark = theme === 'dark';
 
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<number | ''>('');
@@ -40,22 +44,15 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     Array<{
       concept: string;
       quantity: number;
-      unitPriceEuro: number;
-      discount: number;
-      igicRate: number;
+      price_unit: number;
+      igic_rate: number;
     }>
   >([
-    {
-      concept: 'Servicios de Consultoría y Desarrollo',
-      quantity: 1,
-      unitPriceEuro: 150.0,
-      discount: 0,
-      igicRate: 7.0,
-    },
+    { concept: '', quantity: 1, price_unit: 0, igic_rate: 7 },
   ]);
 
   useEffect(() => {
-    async function initFormData() {
+    async function initForm() {
       const cls = await getClients();
       const stts = await getSettings();
       setClients(cls);
@@ -67,52 +64,36 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         setIssueDate(initialInvoice.issue_date);
         setDueDate(initialInvoice.due_date || '');
         setStatus(initialInvoice.status);
-
-        // Calcular porcentaje de IRPF si existía
-        if (initialInvoice.total_base > 0 && initialInvoice.total_irpf > 0) {
-          const calculatedIrpf = Math.round(
-            (initialInvoice.total_irpf / initialInvoice.total_base) * 100
-          );
-          setIrpfPercent(calculatedIrpf);
-        } else {
-          setIrpfPercent(0);
-        }
+        const hasIrpf = initialInvoice.total_irpf > 0;
+        setIrpfPercent(hasIrpf ? 15 : 0);
 
         if (initialInvoice.lines && initialInvoice.lines.length > 0) {
           setLines(
             initialInvoice.lines.map((l) => ({
               concept: l.concept,
               quantity: l.quantity,
-              unitPriceEuro: centsToEuroNumber(l.unit_price),
-              discount: l.discount,
-              igicRate: l.igic_rate,
+              price_unit: centsToEuroNumber(l.unit_price),
+              igic_rate: l.igic_rate,
             }))
           );
         }
       } else {
+        const defaultIgic = stts ? stts.default_igic_rate : 7;
+        const defaultClient = cls.length > 0 ? cls[0] : null;
+        const defaultClientId = defaultClient ? defaultClient.id : '';
+        const hasClientIrpf = defaultClient ? defaultClient.default_retention_irpf : false;
+
+        setSelectedClientId(defaultClientId);
+        setIrpfPercent(hasClientIrpf ? 15 : 0);
+        setLines([{ concept: '', quantity: 1, price_unit: 0, igic_rate: defaultIgic }]);
+
         const nextNum = await generateNextInvoiceNumber(false);
         setInvoiceNumber(nextNum);
-        const defaultIgic = stts.default_igic_rate || 7.0;
-        setLines([
-          {
-            concept: 'Servicios de Desarrollo y Mantenimiento Web',
-            quantity: 1,
-            unitPriceEuro: 500.0,
-            discount: 0,
-            igicRate: defaultIgic,
-          },
-        ]);
-        if (cls.length > 0) {
-          setSelectedClientId(cls[0].id);
-          if (cls[0].default_retention_irpf) {
-            setIrpfPercent(15);
-          }
-        }
       }
     }
 
     if (isOpen) {
-      initFormData();
+      initForm();
     }
   }, [isOpen, initialInvoice]);
 
@@ -121,30 +102,19 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   const isReadOnlyDueToVerifactu =
     Boolean(settings?.verifactu_enabled) &&
     Boolean(initialInvoice?.id) &&
-    initialInvoice?.status !== 'Borrador';
+    (initialInvoice?.status === 'Pendiente' || initialInvoice?.status === 'Pagada');
 
   const handleClientChange = (clientId: number) => {
     setSelectedClientId(clientId);
-    const client = clients.find((c) => c.id === clientId);
-    if (client && client.default_retention_irpf) {
-      setIrpfPercent(15);
-    } else {
-      setIrpfPercent(0);
+    const clientObj = clients.find((c) => c.id === clientId);
+    if (clientObj) {
+      setIrpfPercent(clientObj.default_retention_irpf ? 15 : 0);
     }
   };
 
   const handleAddLine = () => {
-    const defaultIgic = settings?.default_igic_rate || 7.0;
-    setLines([
-      ...lines,
-      {
-        concept: '',
-        quantity: 1,
-        unitPriceEuro: 0,
-        discount: 0,
-        igicRate: defaultIgic,
-      },
-    ]);
+    const defaultIgic = settings ? settings.default_igic_rate : 7;
+    setLines([...lines, { concept: '', quantity: 1, price_unit: 0, igic_rate: defaultIgic }]);
   };
 
   const handleRemoveLine = (index: number) => {
@@ -152,22 +122,25 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     setLines(lines.filter((_, i) => i !== index));
   };
 
-  const handleLineChange = (index: number, field: string, value: any) => {
+  const handleLineChange = (
+    index: number,
+    field: 'concept' | 'quantity' | 'price_unit' | 'igic_rate',
+    value: any
+  ) => {
     const newLines = [...lines];
-    (newLines[index] as any)[field] = value;
+    newLines[index] = { ...newLines[index], [field]: value };
     setLines(newLines);
   };
 
-  // Convertir líneas al formato de InvoiceLine en céntimos
   const computedInvoiceLines: InvoiceLine[] = lines.map((l) => {
-    const unitPriceCents = parseEuroToCents(l.unitPriceEuro);
-    const { totalLineCents } = calculateLineTotals(l.quantity, unitPriceCents, l.discount, l.igicRate);
+    const unitPriceCents = parseEuroToCents(l.price_unit);
+    const { totalLineCents } = calculateLineTotals(l.quantity, unitPriceCents, 0, l.igic_rate);
     return {
       concept: l.concept,
       quantity: Number(l.quantity),
       unit_price: unitPriceCents,
-      discount: Number(l.discount),
-      igic_rate: Number(l.igicRate),
+      discount: 0,
+      igic_rate: Number(l.igic_rate),
       total_line: totalLineCents,
     };
   });
@@ -176,6 +149,10 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent, targetStatus?: Invoice['status']) => {
     e.preventDefault();
+    if (!invoiceNumber.trim()) {
+      alert('Por favor ingresa un número de factura');
+      return;
+    }
     if (!selectedClientId) {
       alert('Por favor selecciona un cliente');
       return;
@@ -216,14 +193,23 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   const selectedClientObj = clients.find((c) => c.id === Number(selectedClientId));
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
-      <div className="bg-slate-900 border border-purple-500/30 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl shadow-purple-950/90">
-        {/* Modal Header */}
-        <div className="p-6 bg-gradient-to-r from-purple-950/60 via-slate-900 to-pink-950/40 border-b border-purple-500/20 flex items-center justify-between">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div
+        className={`border rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl ${
+          isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+        }`}
+      >
+        <div
+          className={`p-6 border-b flex items-center justify-between ${
+            isDark
+              ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950/60 border-slate-800'
+              : 'bg-gradient-to-r from-[#0055ff] to-[#0033aa] text-white border-blue-500'
+          }`}
+        >
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <h2 className="text-xl font-bold flex items-center gap-2">
               <span>
-                {initialInvoice?.id ? `Editar Factura ${invoiceNumber}` : 'Nueva Factura IGIC'}
+                {initialInvoice?.id ? `Editar Factura ${invoiceNumber}` : 'Nueva Factura'}
               </span>
               {isReadOnlyDueToVerifactu && (
                 <span className="px-2.5 py-0.5 rounded-full text-xs bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1">
@@ -231,19 +217,20 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 </span>
               )}
             </h2>
-            <p className="text-xs text-purple-300/70">
-              Desglose automático de Base Imponible, IGIC Canarias e IRPF
+            <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-blue-100'}`}>
+              Desglose automático de Base Imponible, IGIC/IVA e IRPF
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+            className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+              isDark ? 'bg-slate-800 text-slate-400 hover:text-white' : 'bg-white/20 text-white hover:bg-white/30'
+            }`}
           >
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
 
-        {/* Form Body */}
         <form onSubmit={(e) => handleSubmit(e)} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           {isReadOnlyDueToVerifactu && (
             <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 flex items-center gap-3 text-amber-300 text-xs">
@@ -381,52 +368,37 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                   </div>
 
                   {/* Precio Unitario (€) */}
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-3">
                     <label className="block text-[11px] text-slate-400 mb-1">Precio Un. (€)</label>
                     <input
                       type="number"
                       step="0.01"
                       disabled={isReadOnlyDueToVerifactu}
-                      value={line.unitPriceEuro}
+                      value={line.price_unit}
                       onChange={(e) =>
-                        handleLineChange(idx, 'unitPriceEuro', parseFloat(e.target.value) || 0)
+                        handleLineChange(idx, 'price_unit', parseFloat(e.target.value) || 0)
                       }
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs text-right focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
-                    />
-                  </div>
-
-                  {/* Descuento (%) */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[11px] text-slate-400 mb-1">Desc %</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      disabled={isReadOnlyDueToVerifactu}
-                      value={line.discount}
-                      onChange={(e) =>
-                        handleLineChange(idx, 'discount', parseFloat(e.target.value) || 0)
-                      }
-                      className="w-full px-2 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs text-center focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs text-right focus:outline-none focus:border-blue-500 disabled:opacity-60"
                     />
                   </div>
 
                   {/* Tipo IGIC */}
                   <div className="md:col-span-2">
-                    <label className="block text-[11px] text-slate-400 mb-1">IGIC Canarias</label>
+                    <label className="block text-[11px] text-slate-400 mb-1">IGIC / IVA</label>
                     <select
                       disabled={isReadOnlyDueToVerifactu}
-                      value={line.igicRate}
+                      value={line.igic_rate}
                       onChange={(e) =>
-                        handleLineChange(idx, 'igicRate', parseFloat(e.target.value) || 0)
+                        handleLineChange(idx, 'igic_rate', parseFloat(e.target.value) || 0)
                       }
-                      className="w-full px-2 py-2 rounded-lg bg-slate-900 border border-slate-700 text-purple-300 font-semibold text-xs text-center focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                      className="w-full px-2 py-2 rounded-lg bg-slate-900 border border-slate-700 text-blue-300 font-semibold text-xs text-center focus:outline-none focus:border-blue-500 disabled:opacity-60"
                     >
                       <option value="0">0% Exento</option>
                       <option value="3">3% Reducido</option>
-                      <option value="7">7% General</option>
+                      <option value="7">7% IGIC General</option>
                       <option value="9.5">9.5% Incrementado</option>
                       <option value="15">15% Especial</option>
+                      <option value="21">21% IVA General</option>
                     </select>
                   </div>
 

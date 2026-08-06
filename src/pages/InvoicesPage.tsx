@@ -35,6 +35,7 @@ interface InvoicesPageProps {
   onEditInvoice: (invoice: Invoice) => void;
   refreshTrigger?: number;
   onInvoiceSaved?: () => void;
+  theme?: 'dark' | 'light';
 }
 
 export const InvoicesPage: React.FC<InvoicesPageProps> = ({
@@ -42,10 +43,13 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
   onEditInvoice,
   refreshTrigger,
   onInvoiceSaved,
+  theme = 'dark',
 }) => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+
+  const isDark = theme === 'dark';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -174,6 +178,10 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
     return matchesSearch && matchesStatus;
   });
 
+  const cardBgClass = isDark
+    ? 'bg-black border-slate-800/80 shadow-xl text-white'
+    : 'bg-white border-slate-200 shadow-md text-slate-900';
+
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       {/* Top Filter and Actions Bar */}
@@ -189,7 +197,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
             placeholder="Buscar por número o cliente..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-slate-900/80 border border-purple-500/30 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500/50 text-sm"
+            className={`w-full pl-11 pr-4 py-2.5 rounded-2xl border text-sm focus:outline-none focus:border-blue-500 transition-colors ${
+              isDark
+                ? 'bg-slate-900/90 border-slate-800 text-white placeholder-slate-500'
+                : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 shadow-sm'
+            }`}
           />
         </div>
 
@@ -201,8 +213,10 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
               onClick={() => setStatusFilter(st)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
                 statusFilter === st
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-md shadow-purple-950/50'
-                  : 'bg-slate-900/80 text-slate-400 border border-purple-900/30 hover:text-white'
+                  ? 'bg-gradient-to-r from-[#0055ff] to-blue-600 text-white shadow-md shadow-blue-950/50'
+                  : isDark
+                  ? 'bg-slate-900/90 text-slate-400 border border-slate-800 hover:text-white'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900 shadow-sm'
               }`}
             >
               {st === 'ALL' ? 'Todas' : st}
@@ -213,7 +227,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
         {/* New Invoice Button */}
         <button
           onClick={onNewInvoice}
-          className="w-full md:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-950/50 shrink-0"
+          className="w-full md:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 shrink-0 transition-transform hover:scale-105"
         >
           <FontAwesomeIcon icon={faPlus} />
           <span>Nueva Factura</span>
@@ -221,15 +235,23 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
       </div>
 
       {/* Main Invoices Table Card */}
-      <div className="bg-slate-900/60 border border-purple-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-xl">
+      <div className={`border rounded-3xl p-6 backdrop-blur-xl shadow-xl ${cardBgClass}`}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300">
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-50 text-blue-600'
+              }`}
+            >
               <FontAwesomeIcon icon={faFileInvoice} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Listado de Facturas</h2>
-              <p className="text-xs text-slate-400">Total listadas: {filteredInvoices.length}</p>
+              <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Listado de Facturas
+              </h2>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Total listadas: {filteredInvoices.length}
+              </p>
             </div>
           </div>
         </div>
@@ -240,8 +262,14 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="text-xs text-slate-400 uppercase bg-slate-950/50 border-b border-purple-900/30">
+            <table className="w-full text-left text-sm">
+              <thead
+                className={`text-xs uppercase border-b ${
+                  isDark
+                    ? 'text-slate-400 bg-black/40 border-slate-800'
+                    : 'text-slate-500 bg-slate-100 border-slate-200'
+                }`}
+              >
                 <tr>
                   <th className="py-3.5 px-4">Número</th>
                   <th className="py-3.5 px-4">Cliente</th>
@@ -252,10 +280,23 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                   <th className="py-3.5 px-4 text-center">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-900/20">
+              <tbody
+                className={`divide-y ${
+                  isDark ? 'divide-slate-800/60 text-slate-300' : 'divide-slate-200 text-slate-700'
+                }`}
+              >
                 {filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-purple-200">
+                  <tr
+                    key={inv.id}
+                    className={`transition-colors ${
+                      isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <td
+                      className={`py-3.5 px-4 font-mono font-bold ${
+                        isDark ? 'text-blue-300' : 'text-blue-700'
+                      }`}
+                    >
                       {inv.invoice_number}
                       {inv.is_rectification && (
                         <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40">
