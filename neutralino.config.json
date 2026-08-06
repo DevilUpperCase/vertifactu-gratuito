@@ -10,6 +10,15 @@
     "enabled": true,
     "writeToLogFile": true
   },
+  "nativeAllowList": [
+    "*",
+    "app.*",
+    "os.*",
+    "filesystem.*",
+    "storage.*",
+    "window.*",
+    "events.*"
+  ],
   "nativeBlockList": [],
   "globalVariables": {
     "TEST_VAR": "Facturalia IGIC Neutralino App"
@@ -34,7 +43,7 @@
     "binaryName": "facturalia-app",
     "resourcesPath": "/dist/",
     "extensionsPath": "/extensions/",
-    "clientLibrary": "/src/assets/neutralino.js",
+    "clientLibrary": "/neutralino.js",
     "binaryVersion": "6.9.0",
     "clientVersion": "6.9.0"
   }

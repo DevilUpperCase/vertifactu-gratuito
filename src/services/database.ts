@@ -16,6 +16,15 @@ declare global {
 }
 
 /**
+ * Detecta si la app corre bajo el runtime nativo de Neutralino (neu run / neu build).
+ * En desarrollo Vite (navegador puro), el objeto Neutralino existe pero NO hay host
+ * nativo, por lo que las llamadas a API nativa fallarían con NE_RT_APIPRME.
+ * El runtime nativo inyecta NL_TOKEN/NL_PORT como globales.
+ */
+const isNativeRuntime = (): boolean =>
+  Boolean(window.Neutralino && window.NL_TOKEN);
+
+/**
  * Script de creación e inicialización de tablas.
  */
 const SCHEMA_SQL = `
@@ -95,7 +104,7 @@ export async function autoSave(): Promise<void> {
   if (!dbInstance) return;
   try {
     const data: Uint8Array = dbInstance.export();
-    if (window.Neutralino && window.Neutralino.filesystem) {
+    if (isNativeRuntime() && window.Neutralino.filesystem) {
       // Neutralino filesystem.writeBinaryFile admite ArrayBuffer o Uint8Array
       await window.Neutralino.filesystem.writeBinaryFile(DB_FILENAME, data.buffer);
       console.log('Facturalia DB guardada en el disco mediante NeutralinoJS');
@@ -128,7 +137,7 @@ export async function initDatabase(): Promise<Database> {
 
   let fileBuffer: ArrayBuffer | null = null;
 
-  if (window.Neutralino && window.Neutralino.filesystem) {
+  if (isNativeRuntime() && window.Neutralino.filesystem) {
     try {
       fileBuffer = await window.Neutralino.filesystem.readBinaryFile(DB_FILENAME);
       console.log('Archivo de base de datos cargado desde disco local');
