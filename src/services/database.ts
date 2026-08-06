@@ -97,6 +97,28 @@ SELECT 1, 'B35999999', 'Cliente Principal Canarias S.L.', 'Av. Marítima 1, Las 
 WHERE NOT EXISTS (SELECT 1 FROM Clients);
 `;
 
+let cachedDbPath: string | null = null;
+
+/**
+ * Obtiene la ruta persistente del archivo de base de datos en el sistema operativo.
+ */
+async function getDbFilePath(): Promise<string> {
+  if (cachedDbPath) return cachedDbPath;
+  if (isNativeRuntime() && window.Neutralino?.os?.getPath) {
+    try {
+      const dataDir = await window.Neutralino.os.getPath('data');
+      if (dataDir) {
+        cachedDbPath = `${dataDir}/invoices_app.db`;
+        return cachedDbPath;
+      }
+    } catch (e) {
+      console.warn('No se pudo obtener la ruta data del SO, usando nombre relativo:', e);
+    }
+  }
+  cachedDbPath = DB_FILENAME;
+  return cachedDbPath;
+}
+
 /**
  * Guarda el estado binario de la base de datos en el sistema de archivos local via NeutralinoJS o localStorage.
  */
@@ -104,20 +126,29 @@ export async function autoSave(): Promise<void> {
   if (!dbInstance) return;
   try {
     const data: Uint8Array = dbInstance.export();
+    // Extraer únicamente el buffer binario exacto correspondiente a la base de datos SQLite,
+    // evitando enviar toda la memoria lineal de WebAssembly (16MB+) a través del WebSocket de Neutralino.
+    const cleanBuffer = data.buffer.slice(
+      data.byteOffset,
+      data.byteOffset + data.byteLength
+    );
+
     if (isNativeRuntime() && window.Neutralino.filesystem) {
-      // Neutralino filesystem.writeBinaryFile admite ArrayBuffer o Uint8Array
-      await window.Neutralino.filesystem.writeBinaryFile(DB_FILENAME, data.buffer);
-      console.log('Facturalia DB guardada en el disco mediante NeutralinoJS');
+      const dbPath = await getDbFilePath();
+      await window.Neutralino.filesystem.writeBinaryFile(dbPath, cleanBuffer);
+      console.log('Facturalia DB guardada en el disco mediante NeutralinoJS:', dbPath);
     } else {
       // Fallback a localStorage para entorno de navegador
-      const binaryString = Array.from(data)
-        .map((byte) => String.fromCharCode(byte))
-        .join('');
+      let binaryString = '';
+      const bytes = new Uint8Array(cleanBuffer);
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binaryString += String.fromCharCode(bytes[i]);
+      }
       localStorage.setItem('invoices_app_db_fallback', btoa(binaryString));
       console.log('Facturalia DB guardada en localStorage fallback');
     }
-  } catch (err) {
-    console.error('Error durante autoSave DB:', err);
+  } catch (err: any) {
+    console.error('Error durante autoSave DB:', err?.message || JSON.stringify(err) || err);
   }
 }
 
@@ -139,10 +170,11 @@ export async function initDatabase(): Promise<Database> {
 
   if (isNativeRuntime() && window.Neutralino.filesystem) {
     try {
-      fileBuffer = await window.Neutralino.filesystem.readBinaryFile(DB_FILENAME);
-      console.log('Archivo de base de datos cargado desde disco local');
-    } catch (err) {
-      console.warn('Base de datos no encontrada en disco local. Se creará una nueva:', err);
+      const dbPath = await getDbFilePath();
+      fileBuffer = await window.Neutralino.filesystem.readBinaryFile(dbPath);
+      console.log('Archivo de base de datos cargado desde disco local:', dbPath);
+    } catch (err: any) {
+      console.warn('Base de datos no encontrada en disco local. Se creará una nueva:', err?.message || JSON.stringify(err) || err);
     }
   } else {
     const fallbackStr = localStorage.getItem('invoices_app_db_fallback');

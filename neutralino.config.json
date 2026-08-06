@@ -4,6 +4,7 @@
   "port": 0,
   "url": "/index.html",
   "enableServer": true,
+  "enableNativeAPI": true,
   "documentRoot": "/dist/",
   "tokenSecurity": "one-time",
   "logging": {
@@ -15,6 +16,12 @@
     "app.*",
     "os.*",
     "filesystem.*",
+    "filesystem.readBinaryFile",
+    "filesystem.writeBinaryFile",
+    "filesystem.readFile",
+    "filesystem.writeFile",
+    "filesystem.readDirectory",
+    "filesystem.createDirectory",
     "storage.*",
     "window.*",
     "events.*"

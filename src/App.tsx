@@ -20,6 +20,8 @@ export const App: React.FC = () => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
 
+  const [invoicesRefreshTrigger, setInvoicesRefreshTrigger] = useState(0);
+
   const reloadSettings = async () => {
     try {
       const stts = await getSettings();
@@ -29,20 +31,35 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleInvoiceSaved = () => {
+    reloadSettings();
+    setInvoicesRefreshTrigger((prev) => prev + 1);
+  };
+
   useEffect(() => {
     async function init() {
-      // Inicializar SDK de NeutralinoJS si está disponible
-      if (window.Neutralino) {
-        try {
-          window.Neutralino.init();
-          console.log('NeutralinoJS inicializado con éxito');
-        } catch (e) {
-          console.warn('Advertencia al inicializar NeutralinoJS:', e);
-        }
-      }
-
-      // Inicializar SQLite WASM
       try {
+        // Wait for Neutralino native API WebSocket handshake to complete if running in Neutralino runtime
+        if (window.Neutralino && window.NL_TOKEN) {
+          await new Promise<void>((resolve) => {
+            let readyFired = false;
+            const fallbackTimer = setTimeout(() => {
+              if (!readyFired) {
+                readyFired = true;
+                resolve();
+              }
+            }, 300);
+
+            window.Neutralino?.events?.on('ready', () => {
+              if (!readyFired) {
+                readyFired = true;
+                clearTimeout(fallbackTimer);
+                resolve();
+              }
+            });
+          });
+        }
+
         await initDatabase();
         setDbReady(true);
         await reloadSettings();
@@ -114,6 +131,7 @@ export const App: React.FC = () => {
               onNavigateToInvoices={() => setActiveTab('invoices')}
               onNavigateToClients={() => setActiveTab('clients')}
               onNavigateToSettings={() => setActiveTab('settings')}
+              refreshTrigger={invoicesRefreshTrigger}
             />
           )}
 
@@ -121,6 +139,8 @@ export const App: React.FC = () => {
             <InvoicesPage
               onNewInvoice={handleOpenNewInvoice}
               onEditInvoice={handleOpenEditInvoice}
+              refreshTrigger={invoicesRefreshTrigger}
+              onInvoiceSaved={handleInvoiceSaved}
             />
           )}
 
@@ -140,7 +160,7 @@ export const App: React.FC = () => {
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         initialInvoice={editingInvoice}
-        onInvoiceSaved={reloadSettings}
+        onInvoiceSaved={handleInvoiceSaved}
       />
 
       {/* Integrated Verifactu Guide Modal */}

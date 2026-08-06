@@ -19,6 +19,7 @@ interface DashboardPageProps {
   onNavigateToInvoices: () => void;
   onNavigateToClients: () => void;
   onNavigateToSettings: () => void;
+  refreshTrigger?: number;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -27,6 +28,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onNavigateToInvoices,
   onNavigateToClients,
   onNavigateToSettings,
+  refreshTrigger,
 }) => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -46,7 +48,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       }
     }
     loadData();
-  }, []);
+  }, [refreshTrigger]);
 
   const totalBilledCents = invoices
     .filter((i) => i.status !== 'Anulada')

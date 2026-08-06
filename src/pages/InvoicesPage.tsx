@@ -33,9 +33,16 @@ import { processVerifactuInvoice, VerifactuResult } from '../services/verifactu'
 interface InvoicesPageProps {
   onNewInvoice: () => void;
   onEditInvoice: (invoice: Invoice) => void;
+  refreshTrigger?: number;
+  onInvoiceSaved?: () => void;
 }
 
-export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onNewInvoice, onEditInvoice }) => {
+export const InvoicesPage: React.FC<InvoicesPageProps> = ({
+  onNewInvoice,
+  onEditInvoice,
+  refreshTrigger,
+  onInvoiceSaved,
+}) => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -72,7 +79,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onNewInvoice, onEdit
 
   useEffect(() => {
     loadInvoicesData();
-  }, []);
+  }, [refreshTrigger]);
 
   // Abrir vista previa y generación de PDF
   const handleOpenPdfModal = async (invoiceId: number) => {
@@ -123,6 +130,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onNewInvoice, onEdit
       setIsTemplateModalOpen(false);
       setTemplateInvoiceId(null);
       await loadInvoicesData();
+      onInvoiceSaved?.();
     } catch (err) {
       console.error('Error duplicando factura:', err);
       alert('Error creando la factura desde plantilla');
@@ -139,6 +147,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onNewInvoice, onEdit
       try {
         await createRectificationInvoice(invoiceId);
         await loadInvoicesData();
+        onInvoiceSaved?.();
       } catch (err) {
         console.error('Error al rectificar factura:', err);
         alert('No se pudo generar la factura rectificativa');
@@ -153,6 +162,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onNewInvoice, onEdit
       alert(res.message);
     } else {
       await loadInvoicesData();
+      onInvoiceSaved?.();
     }
   };
 
