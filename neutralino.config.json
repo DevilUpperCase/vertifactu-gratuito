@@ -1,0 +1,41 @@
+{
+  "applicationId": "es.canarias.invoices.app",
+  "defaultMode": "window",
+  "port": 0,
+  "url": "/index.html",
+  "enableServer": true,
+  "documentRoot": "/dist/",
+  "tokenSecurity": "one-time",
+  "logging": {
+    "enabled": true,
+    "writeToLogFile": true
+  },
+  "nativeBlockList": [],
+  "globalVariables": {
+    "TEST_VAR": "Facturalia IGIC Neutralino App"
+  },
+  "modes": {
+    "window": {
+      "title": "Facturalia - Gestión de Facturas e IGIC / Verifactu",
+      "width": 1280,
+      "height": 850,
+      "minWidth": 1024,
+      "minHeight": 700,
+      "fullScreen": false,
+      "alwaysOnTop": false,
+      "enableInspector": true,
+      "borderless": false,
+      "maximize": false,
+      "hidden": false,
+      "resizable": true
+    }
+  },
+  "cli": {
+    "binaryName": "facturalia-app",
+    "resourcesPath": "/dist/",
+    "extensionsPath": "/extensions/",
+    "clientLibrary": "/src/assets/neutralino.js",
+    "binaryVersion": "6.9.0",
+    "clientVersion": "6.9.0"
+  }
+}
