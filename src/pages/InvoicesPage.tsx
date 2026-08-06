@@ -179,7 +179,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
   });
 
   const cardBgClass = isDark
-    ? 'bg-black border-slate-800/80 shadow-xl text-white'
+    ? 'bg-[#1e1f20] border-zinc-800 shadow-xl text-zinc-100'
     : 'bg-white border-slate-200 shadow-md text-slate-900';
 
   return (

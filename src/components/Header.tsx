@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header
       className={`h-20 backdrop-blur-md border-b px-8 flex items-center justify-between z-10 transition-colors duration-200 ${
         isDark
-          ? 'bg-black/80 border-slate-800/80 text-white'
+          ? 'bg-[#131314]/90 border-zinc-800 text-zinc-100'
           : 'bg-white/80 border-slate-200 text-slate-900 shadow-sm'
       }`}
     >
@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
         <h1 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
           {title}
         </h1>
-        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
           España (Verifactu & IGIC/IVA) • Software Gratuito y 100% Local
         </p>
       </div>
@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div
           className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${
             isDark
-              ? 'bg-slate-900/90 border-slate-800 text-slate-300'
+              ? 'bg-[#1e1f20] border-zinc-800 text-zinc-300'
               : 'bg-slate-100 border-slate-200 text-slate-700'
           }`}
         >

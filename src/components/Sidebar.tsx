@@ -38,14 +38,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={`w-64 backdrop-blur-xl border-r flex flex-col h-screen select-none z-20 transition-colors duration-200 ${
         isDark
-          ? 'bg-black/95 border-slate-800/80 text-white'
+          ? 'bg-[#1e1f20] border-zinc-800 text-zinc-100'
           : 'bg-white border-slate-200 text-slate-900 shadow-sm'
       }`}
     >
       {/* Brand Header */}
       <div
         className={`p-6 border-b flex items-center gap-3 ${
-          isDark ? 'border-slate-800/80' : 'border-slate-200'
+          isDark ? 'border-zinc-800' : 'border-slate-200'
         }`}
       >
         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0055ff] via-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 shrink-0">
