@@ -147,11 +147,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Footer Info & Taratic Support */}
       <div
-        className={`p-4 text-center border-t text-[11px] space-y-1 ${
-          isDark ? 'border-slate-800/80 text-slate-400' : 'border-slate-200 text-slate-600'
+        className={`p-4 text-center border-t text-[11px] space-y-1.5 ${
+          isDark ? 'border-zinc-800 text-zinc-400' : 'border-slate-200 text-slate-600'
         }`}
       >
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-2.5">
           <a
             href="https://taratic.com"
             target="_blank"
@@ -163,18 +163,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <img src="/taratic.webp" alt="Taratic Logo" className="w-4 h-4 rounded-full object-cover shrink-0" />
             <span>taratic.com</span>
           </a>
-          <span>•</span>
+          <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>•</span>
           <a
             href="mailto:contacto@taratic.com"
-            className={`hover:underline transition-colors flex items-center gap-1 ${
-              isDark ? 'hover:text-blue-300' : 'hover:text-blue-800'
+            className={`hover:underline transition-colors flex items-center gap-1.5 ${
+              isDark ? 'text-zinc-400 hover:text-blue-300' : 'text-slate-600 hover:text-blue-800'
             }`}
           >
             <FontAwesomeIcon icon={faEnvelope} className="text-[10px]" />
-            contacto@taratic.com
+            <span>contacto@taratic.com</span>
           </a>
         </div>
-        <div className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+        <div className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
           NeutralinoJS + SQLite WASM • v1.0.0
         </div>
       </div>

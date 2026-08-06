@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileInvoice,
@@ -430,7 +431,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
       </div>
 
       {/* PDF View & Customization Modal */}
-      {isPdfModalOpen && selectedInvoiceForPdf && (
+      {isPdfModalOpen && selectedInvoiceForPdf && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div
             className={`border rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] ${
@@ -590,11 +591,12 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Quick Template Selection Modal */}
-      {isTemplateModalOpen && (
+      {isTemplateModalOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div
             className={`border rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 space-y-4 ${
@@ -653,11 +655,12 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* XML Verifactu Inspector Modal */}
-      {isXmlModalOpen && verifactuData && (
+      {isXmlModalOpen && verifactuData && createPortal(
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div
             className={`border rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] ${
@@ -731,7 +734,8 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

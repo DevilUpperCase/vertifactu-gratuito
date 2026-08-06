@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSearch, faEdit, faTrash, faUsers, faTimes, faCheckCircle } from '../utils/icons';
 import { Client } from '../types';
@@ -286,7 +287,7 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
       </div>
 
       {/* Modal Form: Crear / Editar Cliente */}
-      {isModalOpen && editingClient && (
+      {isModalOpen && editingClient && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div
             className={`border rounded-3xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col shadow-2xl ${
@@ -426,7 +427,8 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

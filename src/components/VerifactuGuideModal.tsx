@@ -171,31 +171,35 @@ export const VerifactuGuideModal: React.FC<VerifactuGuideModalProps> = ({
         {/* Footer */}
         <div
           className={`p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 ${
-            isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            isDark ? 'bg-[#131314] border-zinc-800' : 'bg-slate-50 border-slate-200'
           }`}
         >
-          <div className="flex items-center gap-3 text-xs text-slate-500">
+          <div className="flex items-center gap-3 text-xs">
             <a
               href="https://taratic.com"
               target="_blank"
               rel="noreferrer"
-              className="text-blue-600 hover:text-blue-800 font-semibold transition-colors flex items-center gap-1.5"
+              className={`font-semibold transition-colors flex items-center gap-1.5 hover:underline ${
+                isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
+              }`}
             >
               <img src="/taratic.webp" alt="Taratic Logo" className="w-4 h-4 rounded-full object-cover shrink-0" />
               <span>taratic.com</span>
             </a>
-            <span>•</span>
+            <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>•</span>
             <a
               href="mailto:contacto@taratic.com"
-              className="hover:text-blue-600 transition-colors flex items-center gap-1"
+              className={`transition-colors flex items-center gap-1.5 hover:underline ${
+                isDark ? 'text-zinc-400 hover:text-blue-300' : 'text-slate-600 hover:text-blue-800'
+              }`}
             >
               <FontAwesomeIcon icon={faEnvelope} className="text-[10px]" />
-              contacto@taratic.com
+              <span>contacto@taratic.com</span>
             </a>
           </div>
           <button
             onClick={onClose}
-            className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white font-medium text-sm shadow-lg shadow-blue-950/50"
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-blue-950/50"
           >
             Entendido
           </button>
