@@ -287,35 +287,38 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
 
       {/* Modal Form: Crear / Editar Cliente */}
       {isModalOpen && editingClient && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div
             className={`border rounded-3xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col shadow-2xl ${
-              isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+              isDark ? 'bg-[#1e1f20] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
             }`}
           >
+            {/* Modal Header */}
             <div
-              className={`p-6 border-b flex items-center justify-between ${
+              className={`p-5 border-b flex items-center justify-between shrink-0 ${
                 isDark
-                  ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950/60 border-slate-800'
-                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500'
+                  ? 'bg-[#131314] border-zinc-800 text-white'
+                  : 'bg-gradient-to-r from-[#0055ff] to-blue-700 text-white border-blue-600'
               }`}
             >
-              <h3 className="text-lg font-bold">
-                {editingClient.id ? 'Editar Cliente' : 'Nuevo Cliente'}
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <FontAwesomeIcon icon={faUsers} className={isDark ? 'text-blue-400' : 'text-blue-100'} />
+                <span>{editingClient.id ? 'Editar Cliente' : 'Nuevo Cliente'}</span>
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  isDark ? 'bg-slate-800 text-slate-400 hover:text-white' : 'bg-blue-700/50 text-white hover:bg-blue-800'
+                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                  isDark ? 'bg-zinc-800 text-zinc-400 hover:text-white' : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveClient} className="p-6 space-y-4">
+            {/* Modal Form */}
+            <form onSubmit={handleSaveClient} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
               <div>
-                <label className={`block text-xs font-semibold uppercase mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                   NIF / CIF *
                 </label>
                 <input
@@ -324,14 +327,16 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                   placeholder="ej. B35999888"
                   value={editingClient.nif || ''}
                   onChange={(e) => setEditingClient({ ...editingClient, nif: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-blue-500 ${
-                    isDark ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-blue-500 transition-colors ${
+                    isDark
+                      ? 'bg-zinc-900 border-zinc-700 text-white placeholder-zinc-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 shadow-sm'
                   }`}
                 />
               </div>
 
               <div>
-                <label className={`block text-xs font-semibold uppercase mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                   Nombre / Razón Social *
                 </label>
                 <input
@@ -340,14 +345,16 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                   placeholder="ej. Empresa Ejemplo S.L."
                   value={editingClient.name || ''}
                   onChange={(e) => setEditingClient({ ...editingClient, name: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-blue-500 ${
-                    isDark ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-blue-500 transition-colors ${
+                    isDark
+                      ? 'bg-zinc-900 border-zinc-700 text-white placeholder-zinc-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 shadow-sm'
                   }`}
                 />
               </div>
 
               <div>
-                <label className={`block text-xs font-semibold uppercase mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                   Dirección Fiscal
                 </label>
                 <input
@@ -355,14 +362,16 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                   placeholder="ej. Calle Gran Vía 12, Madrid"
                   value={editingClient.address || ''}
                   onChange={(e) => setEditingClient({ ...editingClient, address: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-blue-500 ${
-                    isDark ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-blue-500 transition-colors ${
+                    isDark
+                      ? 'bg-zinc-900 border-zinc-700 text-white placeholder-zinc-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 shadow-sm'
                   }`}
                 />
               </div>
 
               <div>
-                <label className={`block text-xs font-semibold uppercase mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                   Correo Electrónico
                 </label>
                 <input
@@ -370,8 +379,10 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                   placeholder="ej. facturacion@cliente.es"
                   value={editingClient.email || ''}
                   onChange={(e) => setEditingClient({ ...editingClient, email: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-blue-500 ${
-                    isDark ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-blue-500 transition-colors ${
+                    isDark
+                      ? 'bg-zinc-900 border-zinc-700 text-white placeholder-zinc-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 shadow-sm'
                   }`}
                 />
               </div>
@@ -387,26 +398,28 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                       default_retention_irpf: e.target.checked,
                     })
                   }
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700"
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
                 />
-                <label htmlFor="default_retention_irpf" className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <label htmlFor="default_retention_irpf" className={`text-xs ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
                   Aplicar retención IRPF por defecto (15%) en facturas
                 </label>
               </div>
 
-              <div className={`pt-4 flex justify-end gap-3 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              <div className={`pt-4 flex justify-end gap-3 border-t ${isDark ? 'border-zinc-800' : 'border-slate-200'}`}>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium ${
-                    isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium ${
+                    isDark
+                      ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-950/50"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25"
                 >
                   Guardar Cliente
                 </button>

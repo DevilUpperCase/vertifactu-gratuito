@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className={`h-20 backdrop-blur-md border-b px-8 flex items-center justify-between z-10 transition-colors duration-200 ${
+      className={`h-20 backdrop-blur-md border-b px-8 flex items-center justify-between transition-colors duration-200 ${
         isDark
           ? 'bg-[#131314]/90 border-zinc-800 text-zinc-100'
           : 'bg-white/80 border-slate-200 text-slate-900 shadow-sm'
