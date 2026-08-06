@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+button,
+a,
+select,
+summary,
+label,
+input[type="checkbox"],
+input[type="radio"],
+input[type="button"],
+input[type="submit"],
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed !important;
+}
+
 @layer utilities {
   .bg-brand-blue {
     background-color: #0055ff;
