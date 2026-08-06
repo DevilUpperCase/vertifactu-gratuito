@@ -156,12 +156,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             href="https://taratic.com"
             target="_blank"
             rel="noreferrer"
-            className={`hover:underline transition-colors flex items-center gap-1 font-semibold ${
+            className={`hover:underline transition-colors flex items-center gap-1.5 font-semibold ${
               isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
             }`}
           >
-            <FontAwesomeIcon icon={faGlobe} className="text-[10px]" />
-            taratic.com
+            <img src="/taratic.webp" alt="Taratic Logo" className="w-4 h-4 rounded-full object-cover shrink-0" />
+            <span>taratic.com</span>
           </a>
           <span>•</span>
           <a

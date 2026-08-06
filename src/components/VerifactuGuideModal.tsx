@@ -179,10 +179,10 @@ export const VerifactuGuideModal: React.FC<VerifactuGuideModalProps> = ({
               href="https://taratic.com"
               target="_blank"
               rel="noreferrer"
-              className="text-blue-600 hover:text-blue-800 font-semibold transition-colors flex items-center gap-1"
+              className="text-blue-600 hover:text-blue-800 font-semibold transition-colors flex items-center gap-1.5"
             >
-              <FontAwesomeIcon icon={faGlobe} className="text-[10px]" />
-              taratic.com
+              <img src="/taratic.webp" alt="Taratic Logo" className="w-4 h-4 rounded-full object-cover shrink-0" />
+              <span>taratic.com</span>
             </a>
             <span>•</span>
             <a

@@ -433,7 +433,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                   : 'bg-white/20 hover:bg-white/30 text-white border-white/40'
               }`}
             >
-              <FontAwesomeIcon icon={faGlobe} />
+              <img src="/taratic.webp" alt="Taratic" className="w-4 h-4 rounded-full object-cover shrink-0" />
               <span>taratic.com</span>
             </a>
             <a

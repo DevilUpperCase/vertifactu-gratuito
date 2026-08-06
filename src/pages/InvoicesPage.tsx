@@ -299,30 +299,50 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                     >
                       {inv.invoice_number}
                       {inv.is_rectification && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                        <span
+                          className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                            isDark
+                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                              : 'bg-rose-100 text-rose-800 border-rose-300'
+                          }`}
+                        >
                           Rectificativa
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-white">{inv.client_name || 'N/A'}</td>
-                    <td className="py-3.5 px-4 text-xs text-slate-400">{inv.issue_date}</td>
+                    <td className={`py-3.5 px-4 font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {inv.client_name || 'N/A'}
+                    </td>
+                    <td className={`py-3.5 px-4 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {inv.issue_date}
+                    </td>
                     <td className="py-3.5 px-4">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
                           inv.status === 'Pagada'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            ? isDark
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                             : inv.status === 'Pendiente'
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            ? isDark
+                              ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                              : 'bg-amber-100 text-amber-800 border-amber-300'
                             : inv.status === 'Anulada'
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                            : 'bg-slate-700/50 text-slate-300 border border-slate-600'
+                            ? isDark
+                              ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                              : 'bg-rose-100 text-rose-800 border-rose-300'
+                            : isDark
+                            ? 'bg-slate-800 text-slate-300 border-slate-700'
+                            : 'bg-slate-100 text-slate-700 border-slate-300'
                         }`}
                       >
                         {inv.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-medium">{formatCurrency(inv.total_base)}</td>
-                    <td className="py-3.5 px-4 text-right font-bold text-white">
+                    <td className={`py-3.5 px-4 text-right font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      {formatCurrency(inv.total_base)}
+                    </td>
+                    <td className={`py-3.5 px-4 text-right font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {formatCurrency(inv.grand_total)}
                     </td>
                     <td className="py-3.5 px-4 text-center">
@@ -330,7 +350,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                         {/* Ver / PDF */}
                         <button
                           onClick={() => handleOpenPdfModal(inv.id!)}
-                          className="p-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 transition-colors"
+                          className={`p-2 rounded-lg transition-colors ${
+                            isDark
+                              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
+                              : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                          }`}
                           title="Ver / PDF con QR Verifactu"
                         >
                           <FontAwesomeIcon icon={faFilePdf} />
@@ -342,7 +366,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                             const full = await getInvoiceById(inv.id!);
                             if (full) onEditInvoice(full);
                           }}
-                          className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 transition-colors"
+                          className={`p-2 rounded-lg transition-colors ${
+                            isDark
+                              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
+                              : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                          }`}
                           title="Editar factura"
                         >
                           <FontAwesomeIcon icon={faEdit} />
@@ -354,7 +382,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                             setTemplateInvoiceId(inv.id!);
                             setIsTemplateModalOpen(true);
                           }}
-                          className="p-2 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-300 transition-colors"
+                          className={`p-2 rounded-lg transition-colors ${
+                            isDark
+                              ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300'
+                              : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200'
+                          }`}
                           title="Usar como plantilla para otro cliente"
                         >
                           <FontAwesomeIcon icon={faCopy} />
@@ -364,7 +396,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                         {!inv.is_rectification && inv.status !== 'Borrador' && (
                           <button
                             onClick={() => handleCreateRectification(inv.id!, inv.invoice_number)}
-                            className="p-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-colors"
+                            className={`p-2 rounded-lg transition-colors ${
+                              isDark
+                                ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300'
+                                : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+                            }`}
                             title="Generar Factura Rectificativa / Abono"
                           >
                             <FontAwesomeIcon icon={faUndo} />
@@ -374,7 +410,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                         {/* Eliminar (si borrador) */}
                         <button
                           onClick={() => handleDeleteInvoice(inv.id!)}
-                          className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
+                          className={`p-2 rounded-lg transition-colors ${
+                            isDark
+                              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
+                              : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                          }`}
                           title="Eliminar factura"
                         >
                           <FontAwesomeIcon icon={faTrash} />
@@ -389,48 +429,66 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
         )}
       </div>
 
-      {/* PDF View & Customization Modal (Crucial Requirement: Toggle "Mostrar columna Sin IGIC") */}
+      {/* PDF View & Customization Modal */}
       {isPdfModalOpen && selectedInvoiceForPdf && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
-          <div className="bg-slate-900 border border-purple-500/30 rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div
+            className={`border rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] ${
+              isDark ? 'bg-[#1e1f20] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
             {/* Header */}
-            <div className="p-6 bg-gradient-to-r from-purple-950/60 to-pink-950/40 border-b border-purple-500/20 flex items-center justify-between">
+            <div
+              className={`p-6 border-b flex items-center justify-between ${
+                isDark
+                  ? 'bg-[#131314] border-zinc-800 text-white'
+                  : 'bg-gradient-to-r from-[#0055ff] to-blue-700 text-white border-blue-600'
+              }`}
+            >
               <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FontAwesomeIcon icon={faFilePdf} className="text-pink-400" />
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <FontAwesomeIcon icon={faFilePdf} className={isDark ? 'text-blue-400' : 'text-blue-100'} />
                   <span>Documento Factura {selectedInvoiceForPdf.invoice_number}</span>
                 </h3>
-                <p className="text-xs text-purple-300/70">
+                <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-blue-100'}`}>
                   Previsualización de formato oficial de facturación
                 </p>
               </div>
               <button
                 onClick={() => setIsPdfModalOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  isDark ? 'bg-zinc-800 text-zinc-400 hover:text-white' : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
               >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6">
-              {/* CRUCIAL UI REQUIREMENT: Toggle "Mostrar columna Sin IGIC" */}
-              <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/30 flex items-center justify-between">
+            <div className="p-6 overflow-y-auto space-y-6 custom-scrollbar">
+              {/* Toggle "Mostrar columna Sin IGIC" */}
+              <div
+                className={`p-4 rounded-2xl border flex items-center justify-between ${
+                  isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
                 <div>
-                  <h4 className="font-semibold text-white text-sm">Opciones de Formato PDF</h4>
-                  <p className="text-xs text-slate-400">
+                  <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Opciones de Formato PDF
+                  </h4>
+                  <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                     Alterna el desglose explícito de la base imponible sin impuesto por línea
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-purple-300">
+                  <span className={`text-xs font-semibold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                     Mostrar columna Sin IGIC
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowExcludingIgicColumn(!showExcludingIgicColumn)}
                     className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${
-                      showExcludingIgicColumn ? 'bg-gradient-to-r from-purple-600 to-pink-500' : 'bg-slate-800'
+                      showExcludingIgicColumn ? 'bg-[#0055ff]' : 'bg-slate-400'
                     }`}
                   >
                     <div
@@ -443,23 +501,31 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
               </div>
 
               {/* Invoice Summary Details Box */}
-              <div className="p-6 rounded-2xl bg-slate-950/80 border border-purple-900/30 space-y-4">
+              <div
+                className={`p-6 rounded-2xl border space-y-4 ${
+                  isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
-                    <span className="text-slate-500">Emisor:</span>
-                    <p className="font-semibold text-white">{settings?.issuer_name}</p>
-                    <p className="text-slate-400">NIF: {settings?.issuer_nif}</p>
+                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Emisor:</span>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{settings?.issuer_name}</p>
+                    <p className={isDark ? 'text-zinc-400' : 'text-slate-600'}>NIF: {settings?.issuer_nif}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500">Cliente:</span>
-                    <p className="font-semibold text-white">{selectedInvoiceForPdf.client_name}</p>
-                    <p className="text-slate-400">NIF: {selectedInvoiceForPdf.client_nif}</p>
+                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Cliente:</span>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{selectedInvoiceForPdf.client_name}</p>
+                    <p className={isDark ? 'text-zinc-400' : 'text-slate-600'}>NIF: {selectedInvoiceForPdf.client_nif}</p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-purple-900/30 flex justify-between items-center text-sm font-bold text-white">
+                <div
+                  className={`pt-4 border-t flex justify-between items-center text-sm font-bold ${
+                    isDark ? 'border-zinc-800 text-white' : 'border-slate-200 text-slate-900'
+                  }`}
+                >
                   <span>Importe Total Factura:</span>
-                  <span className="text-lg text-pink-300">
+                  <span className={`text-lg ${isDark ? 'text-blue-400' : 'text-blue-700 font-extrabold'}`}>
                     {formatCurrency(selectedInvoiceForPdf.grand_total)}
                   </span>
                 </div>
@@ -467,18 +533,22 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
 
               {/* Verifactu Compliance Preview Badge & QR */}
               {verifactuData && (
-                <div className="p-4 rounded-2xl bg-slate-950 border border-purple-500/30 flex items-center gap-4">
+                <div
+                  className={`p-4 rounded-2xl border flex items-center gap-4 ${
+                    isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-100 border-slate-200'
+                  }`}
+                >
                   <img
                     src={verifactuData.qrCodeDataUrl}
                     alt="Verifactu QR Code"
-                    className="w-20 h-20 rounded-xl bg-white p-1 border border-purple-500/40 shrink-0"
+                    className="w-20 h-20 rounded-xl bg-white p-1 border border-slate-300 shrink-0"
                   />
                   <div className="space-y-1 text-xs">
-                    <div className="flex items-center gap-2 text-pink-400 font-semibold">
+                    <div className="flex items-center gap-2 text-blue-600 font-bold">
                       <FontAwesomeIcon icon={faShieldAlt} />
                       <span>Verifactu AEAT Inmutable</span>
                     </div>
-                    <p className="text-slate-300">
+                    <p className={isDark ? 'text-zinc-300' : 'text-slate-700'}>
                       Código QR oficial generado con la URL de la Sede Electrónica de la Agencia Tributaria.
                     </p>
                     <p className="font-mono text-[10px] text-slate-500 truncate max-w-sm">
@@ -486,7 +556,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                     </p>
                     <button
                       onClick={() => setIsXmlModalOpen(true)}
-                      className="text-[11px] text-purple-400 hover:text-pink-300 underline font-medium"
+                      className="text-[11px] text-blue-600 hover:underline font-medium"
                     >
                       Inspeccionar Payload XML y Firma Digital →
                     </button>
@@ -496,16 +566,24 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 bg-slate-900 border-t border-purple-500/20 flex justify-end gap-3">
+            <div
+              className={`p-6 border-t flex justify-end gap-3 ${
+                isDark ? 'bg-[#131314] border-zinc-800' : 'bg-slate-50 border-slate-200'
+              }`}
+            >
               <button
                 onClick={() => setIsPdfModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium ${
+                  isDark
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
+                }`}
               >
                 Cerrar
               </button>
               <button
                 onClick={handleDownloadPdf}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white text-sm font-semibold shadow-lg shadow-purple-950/50 flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-950/50 flex items-center gap-2"
               >
                 <FontAwesomeIcon icon={faDownload} />
                 <span>Descargar PDF</span>
@@ -517,24 +595,32 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
 
       {/* Quick Template Selection Modal */}
       {isTemplateModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-slate-900 border border-purple-500/30 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <FontAwesomeIcon icon={faCopy} className="text-pink-400" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div
+            className={`border rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 space-y-4 ${
+              isDark ? 'bg-[#1e1f20] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
+            <h3 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <FontAwesomeIcon icon={faCopy} className="text-blue-500" />
               <span>Duplicar Factura como Plantilla</span>
             </h3>
-            <p className="text-xs text-slate-300">
+            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
               Selecciona el cliente de destino. Se clonarán todas las líneas y conceptos asignando un nuevo número de factura en borrador.
             </p>
 
             <div>
-              <label className="block text-xs font-semibold text-purple-300 uppercase mb-1">
+              <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                 Cliente Destino *
               </label>
               <select
                 value={templateClientId}
                 onChange={(e) => setTemplateClientId(Number(e.target.value))}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-purple-500/30 text-white text-sm focus:outline-none focus:border-pink-500/50"
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-blue-500 ${
+                  isDark
+                    ? 'bg-zinc-950 border-zinc-700 text-white'
+                    : 'bg-slate-50 border-slate-300 text-slate-900 shadow-sm'
+                }`}
               >
                 <option value="">-- Seleccionar cliente --</option>
                 {clients.map((c) => (
@@ -545,60 +631,101 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
               </select>
             </div>
 
-            <div className="pt-4 flex justify-end gap-3 border-t border-purple-900/20">
+            <div className="flex justify-end gap-3 pt-2">
               <button
+                type="button"
                 onClick={() => setIsTemplateModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium ${
+                  isDark
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
+                }`}
               >
                 Cancelar
               </button>
               <button
-                disabled={!templateClientId}
+                type="button"
                 onClick={handleConfirmDuplicateTemplate}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white text-sm font-semibold disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-950/50 flex items-center gap-2"
               >
-                Generar Nueva Factura
+                <FontAwesomeIcon icon={faCopy} />
+                <span>Duplicar Factura</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* XML Verifactu Inspection Modal */}
+      {/* XML Verifactu Inspector Modal */}
       {isXmlModalOpen && verifactuData && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-slate-900 border border-purple-500/30 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
-              <h3 className="text-lg font-bold text-white">Estructura XML Verifactu AEAT</h3>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div
+            className={`border rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] ${
+              isDark ? 'bg-[#1e1f20] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
+            <div
+              className={`p-6 border-b flex items-center justify-between ${
+                isDark
+                  ? 'bg-[#131314] border-zinc-800 text-white'
+                  : 'bg-gradient-to-r from-[#0055ff] to-blue-700 text-white border-blue-600'
+              }`}
+            >
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <FontAwesomeIcon icon={faShieldAlt} />
+                <span>Payload XML Verifactu & Cadena Hash</span>
+              </h3>
               <button
                 onClick={() => setIsXmlModalOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  isDark ? 'bg-zinc-800 text-zinc-400 hover:text-white' : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
               >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
 
-            <div className="bg-slate-950 p-4 rounded-xl border border-purple-900/30 overflow-x-auto max-h-80">
-              <pre className="text-xs text-pink-300 font-mono leading-relaxed">
-                {verifactuData.xmlContent}
-              </pre>
-            </div>
-
-            {verifactuData.signature && (
+            <div className="p-6 overflow-y-auto space-y-4 text-xs font-mono custom-scrollbar">
               <div>
-                <span className="text-xs font-semibold text-emerald-400">
-                  Firma Digital XMLDSig (RSA-SHA256 Base64):
-                </span>
-                <p className="font-mono text-[10px] text-slate-400 bg-slate-950 p-2 rounded-lg truncate mt-1">
-                  {verifactuData.signature}
+                <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Huella Hash SHA-256:</span>
+                <p className={`p-2.5 rounded-xl border mt-1 select-all ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-blue-300' : 'bg-slate-100 border-slate-300 text-blue-800'
+                }`}>
+                  {verifactuData.xmlHash}
                 </p>
               </div>
-            )}
 
-            <div className="flex justify-end pt-2">
+              <div>
+                <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>URL Sede Electrónica AEAT:</span>
+                <p className={`p-2.5 rounded-xl border mt-1 break-all select-all ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300' : 'bg-slate-100 border-slate-300 text-slate-800'
+                }`}>
+                  {verifactuData.qrUrl}
+                </p>
+              </div>
+
+              <div>
+                <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Estructura XML Verifactu:</span>
+                <pre className={`p-3 rounded-xl border mt-1 overflow-x-auto text-[11px] leading-relaxed ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300' : 'bg-slate-900 text-slate-100 border-slate-800'
+                }`}>
+                  {verifactuData.xmlContent}
+                </pre>
+              </div>
+            </div>
+
+            <div
+              className={`p-4 border-t flex justify-end ${
+                isDark ? 'bg-[#131314] border-zinc-800' : 'bg-slate-50 border-slate-200'
+              }`}
+            >
               <button
                 onClick={() => setIsXmlModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${
+                  isDark
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
+                }`}
               >
                 Cerrar
               </button>

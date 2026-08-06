@@ -87,7 +87,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         setIrpfPercent(hasClientIrpf ? 15 : 0);
         setLines([{ concept: '', quantity: 1, price_unit: 0, igic_rate: defaultIgic }]);
 
-        const nextNum = await generateNextInvoiceNumber(false);
+        const nextNum = await generateNextInvoiceNumber();
         setInvoiceNumber(nextNum);
       }
     }
@@ -132,7 +132,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     setLines(newLines);
   };
 
-  const computedInvoiceLines: InvoiceLine[] = lines.map((l) => {
+  const computedInvoiceLines: Omit<InvoiceLine, 'id' | 'invoice_id'>[] = lines.map((l) => {
     const unitPriceCents = parseEuroToCents(l.price_unit);
     const { totalLineCents } = calculateLineTotals(l.quantity, unitPriceCents, 0, l.igic_rate);
     return {
@@ -192,6 +192,16 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
   const selectedClientObj = clients.find((c) => c.id === Number(selectedClientId));
 
+  const labelClass = `block text-xs font-bold uppercase mb-1 ${
+    isDark ? 'text-blue-300' : 'text-blue-700'
+  }`;
+
+  const inputClass = `w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-60 ${
+    isDark
+      ? 'bg-zinc-950 border-zinc-700 text-white placeholder-zinc-500'
+      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 shadow-sm'
+  }`;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
       <div
@@ -202,8 +212,8 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         <div
           className={`p-6 border-b flex items-center justify-between ${
             isDark
-              ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950/60 border-slate-800'
-              : 'bg-gradient-to-r from-[#0055ff] to-[#0033aa] text-white border-blue-500'
+              ? 'bg-[#131314] border-zinc-800 text-white'
+              : 'bg-gradient-to-r from-[#0055ff] to-blue-700 text-white border-blue-600'
           }`}
         >
           <div>
@@ -217,14 +227,14 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 </span>
               )}
             </h2>
-            <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-blue-100'}`}>
+            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-blue-100'}`}>
               Desglose automático de Base Imponible, IGIC/IVA e IRPF
             </p>
           </div>
           <button
             onClick={onClose}
             className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-              isDark ? 'bg-slate-800 text-slate-400 hover:text-white' : 'bg-white/20 text-white hover:bg-white/30'
+              isDark ? 'bg-zinc-800 text-zinc-400 hover:text-white' : 'bg-white/20 text-white hover:bg-white/30'
             }`}
           >
             <FontAwesomeIcon icon={faTimes} />
@@ -233,7 +243,13 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
         <form onSubmit={(e) => handleSubmit(e)} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           {isReadOnlyDueToVerifactu && (
-            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 flex items-center gap-3 text-amber-300 text-xs">
+            <div
+              className={`p-4 rounded-2xl border flex items-center gap-3 text-xs ${
+                isDark
+                  ? 'bg-amber-950/40 border-amber-500/40 text-amber-300'
+                  : 'bg-amber-50 border-amber-200 text-amber-800'
+              }`}
+            >
               <FontAwesomeIcon icon={faExclamationTriangle} className="text-lg shrink-0" />
               <span>
                 Factura emitida bajo normativa Verifactu. Los datos están bloqueados contra modificación. Para realizar cambios o rectificaciones, emita una Factura Rectificativa desde el listado.
@@ -241,59 +257,48 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
             </div>
           )}
 
-          {/* Section 1: Client & Invoice Metadata */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Invoice Number */}
             <div>
-              <label className="block text-xs font-semibold text-purple-300 uppercase mb-1">
-                Número de Factura
-              </label>
+              <label className={labelClass}>Número de Factura</label>
               <input
                 type="text"
                 disabled={isReadOnlyDueToVerifactu}
                 value={invoiceNumber}
                 onChange={(e) => setInvoiceNumber(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-purple-500/30 text-white font-mono font-bold text-sm focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                className={`${inputClass} font-mono font-bold`}
               />
             </div>
-
-            {/* Issue Date */}
             <div>
-              <label className="block text-xs font-semibold text-purple-300 uppercase mb-1">
-                Fecha de Emisión
-              </label>
+              <label className={labelClass}>Fecha de Emisión</label>
               <input
                 type="date"
                 disabled={isReadOnlyDueToVerifactu}
                 value={issueDate}
                 onChange={(e) => setIssueDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-purple-500/30 text-white text-sm focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                className={inputClass}
               />
             </div>
-
-            {/* Due Date */}
             <div>
-              <label className="block text-xs font-semibold text-purple-300 uppercase mb-1">
-                Fecha Vencimiento
-              </label>
+              <label className={labelClass}>Fecha Vencimiento</label>
               <input
                 type="date"
                 disabled={isReadOnlyDueToVerifactu}
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-purple-500/30 text-white text-sm focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                className={inputClass}
               />
             </div>
           </div>
 
-          {/* Client Selection */}
-          <div className="p-4 rounded-2xl bg-slate-950/60 border border-purple-900/30 space-y-3">
+          <div
+            className={`p-4 rounded-2xl border space-y-3 ${
+              isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-purple-300 uppercase">
-                Seleccionar Cliente *
-              </label>
+              <label className={labelClass}>Seleccionar Cliente *</label>
               {selectedClientObj && (
-                <span className="text-xs text-pink-300 font-mono">
+                <span className={`text-xs font-mono font-semibold ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
                   NIF: {selectedClientObj.nif}
                 </span>
               )}
@@ -302,7 +307,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
               disabled={isReadOnlyDueToVerifactu}
               value={selectedClientId}
               onChange={(e) => handleClientChange(Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-purple-500/30 text-white text-sm focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+              className={inputClass}
             >
               <option value="">-- Seleccionar cliente registrado --</option>
               {clients.map((c) => (
@@ -312,21 +317,26 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
               ))}
             </select>
             {selectedClientObj?.address && (
-              <p className="text-xs text-slate-400">Dirección: {selectedClientObj.address}</p>
+              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                Dirección: {selectedClientObj.address}
+              </p>
             )}
           </div>
 
-          {/* Section 2: Dynamic Line Items Table */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Líneas de Factura (Conceptos)
               </h3>
               {!isReadOnlyDueToVerifactu && (
                 <button
                   type="button"
                   onClick={handleAddLine}
-                  className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-semibold flex items-center gap-1.5"
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                    isDark
+                      ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border-blue-500/40'
+                      : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
+                  }`}
                 >
                   <FontAwesomeIcon icon={faPlus} />
                   <span>Añadir Línea</span>
@@ -338,24 +348,27 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
               {lines.map((line, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-2xl bg-slate-950/80 border border-purple-900/30 grid grid-cols-1 md:grid-cols-12 gap-3 items-center"
+                  className={`p-4 rounded-2xl border grid grid-cols-1 md:grid-cols-12 gap-3 items-center ${
+                    isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                  }`}
                 >
-                  {/* Concepto */}
                   <div className="md:col-span-4">
-                    <label className="block text-[11px] text-slate-400 mb-1">Concepto / Servicio</label>
+                    <label className={`block text-[11px] mb-1 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                      Concepto / Servicio
+                    </label>
                     <input
                       type="text"
                       disabled={isReadOnlyDueToVerifactu}
                       placeholder="Descripción del concepto"
                       value={line.concept}
                       onChange={(e) => handleLineChange(idx, 'concept', e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                      className={inputClass}
                     />
                   </div>
-
-                  {/* Cantidad */}
                   <div className="md:col-span-2">
-                    <label className="block text-[11px] text-slate-400 mb-1">Cantidad</label>
+                    <label className={`block text-[11px] mb-1 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                      Cantidad
+                    </label>
                     <input
                       type="number"
                       min="0.1"
@@ -363,13 +376,13 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                       disabled={isReadOnlyDueToVerifactu}
                       value={line.quantity}
                       onChange={(e) => handleLineChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs text-center focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                      className={`${inputClass} text-center`}
                     />
                   </div>
-
-                  {/* Precio Unitario (€) */}
                   <div className="md:col-span-3">
-                    <label className="block text-[11px] text-slate-400 mb-1">Precio Un. (€)</label>
+                    <label className={`block text-[11px] mb-1 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                      Precio Un. (€)
+                    </label>
                     <input
                       type="number"
                       step="0.01"
@@ -378,20 +391,22 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                       onChange={(e) =>
                         handleLineChange(idx, 'price_unit', parseFloat(e.target.value) || 0)
                       }
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs text-right focus:outline-none focus:border-blue-500 disabled:opacity-60"
+                      className={`${inputClass} text-right`}
                     />
                   </div>
-
-                  {/* Tipo IGIC */}
                   <div className="md:col-span-2">
-                    <label className="block text-[11px] text-slate-400 mb-1">IGIC / IVA</label>
+                    <label className={`block text-[11px] mb-1 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                      IGIC / IVA
+                    </label>
                     <select
                       disabled={isReadOnlyDueToVerifactu}
                       value={line.igic_rate}
                       onChange={(e) =>
                         handleLineChange(idx, 'igic_rate', parseFloat(e.target.value) || 0)
                       }
-                      className="w-full px-2 py-2 rounded-lg bg-slate-900 border border-slate-700 text-blue-300 font-semibold text-xs text-center focus:outline-none focus:border-blue-500 disabled:opacity-60"
+                      className={`${inputClass} text-center font-semibold ${
+                        isDark ? 'text-blue-300' : 'text-blue-700'
+                      }`}
                     >
                       <option value="0">0% Exento</option>
                       <option value="3">3% Reducido</option>
@@ -401,14 +416,16 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                       <option value="21">21% IVA General</option>
                     </select>
                   </div>
-
-                  {/* Botón Eliminar */}
                   {!isReadOnlyDueToVerifactu && lines.length > 1 && (
                     <div className="md:col-span-1 flex justify-center pt-4 md:pt-0">
                       <button
                         type="button"
                         onClick={() => handleRemoveLine(idx)}
-                        className="p-2 text-slate-500 hover:text-rose-400 transition-colors"
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10'
+                            : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                        }`}
                         title="Eliminar línea"
                       >
                         <FontAwesomeIcon icon={faTrash} />
@@ -420,52 +437,69 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
             </div>
           </div>
 
-          {/* Section 3: Tax Adjustments & Summary Totals */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-purple-900/30">
-            {/* Left: Retención IRPF Option */}
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-purple-900/30 space-y-3">
-              <label className="block text-xs font-semibold text-purple-300 uppercase">
-                Retención IRPF a Cuenta
-              </label>
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t ${isDark ? 'border-zinc-800' : 'border-slate-200'}`}>
+            <div
+              className={`p-4 rounded-2xl border space-y-3 ${
+                isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-slate-50 border-slate-200'
+              }`}
+            >
+              <label className={labelClass}>Retención IRPF a Cuenta</label>
               <select
                 disabled={isReadOnlyDueToVerifactu}
                 value={irpfPercent}
                 onChange={(e) => setIrpfPercent(parseFloat(e.target.value) || 0)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-purple-500/30 text-white text-sm focus:outline-none focus:border-pink-500/50 disabled:opacity-60"
+                className={inputClass}
               >
                 <option value="0">Sin Retención IRPF (0%)</option>
                 <option value="7">7% Retención IRPF (Nuevos Autónomos)</option>
                 <option value="15">15% Retención IRPF (Profesionales Estándar)</option>
               </select>
-              <p className="text-xs text-slate-400">
+              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                 La retención IRPF se resta del importe total sobre la Base Imponible.
               </p>
             </div>
 
-            {/* Right: Calculated Totals Summary */}
-            <div className="p-4 rounded-2xl bg-purple-950/30 border border-purple-500/30 space-y-2 text-sm">
-              <div className="flex justify-between text-slate-300">
+            <div
+              className={`p-4 rounded-2xl border space-y-2 text-sm ${
+                isDark
+                  ? 'bg-blue-950/30 border-blue-500/30'
+                  : 'bg-blue-50/80 border-blue-200 text-slate-900'
+              }`}
+            >
+              <div className={`flex justify-between ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
                 <span>Base Imponible Total:</span>
                 <span className="font-semibold">{formatCurrency(summary.totalBaseCents)}</span>
               </div>
-
               {summary.igicBreakdown.map((b) => (
-                <div key={b.rate} className="flex justify-between text-xs text-purple-300">
-                  <span>Cuota IGIC ({b.rate}%):</span>
+                <div
+                  key={b.rate}
+                  className={`flex justify-between text-xs ${
+                    isDark ? 'text-blue-300' : 'text-blue-800 font-medium'
+                  }`}
+                >
+                  <span>Cuota IGIC/IVA ({b.rate}%):</span>
                   <span>{formatCurrency(b.igicCents)}</span>
                 </div>
               ))}
-
               {summary.totalIrpfCents > 0 && (
-                <div className="flex justify-between text-xs text-rose-400">
+                <div
+                  className={`flex justify-between text-xs ${
+                    isDark ? 'text-rose-400' : 'text-rose-700 font-medium'
+                  }`}
+                >
                   <span>Retención IRPF (-{irpfPercent}%):</span>
                   <span>-{formatCurrency(summary.totalIrpfCents)}</span>
                 </div>
               )}
-
-              <div className="pt-3 border-t border-purple-500/30 flex justify-between items-center text-lg font-extrabold text-white">
-                <span className="text-purple-200">TOTAL FACTURA:</span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">
+              <div
+                className={`pt-3 border-t flex justify-between items-center text-lg font-extrabold ${
+                  isDark
+                    ? 'border-blue-500/30 text-white'
+                    : 'border-blue-200 text-slate-900'
+                }`}
+              >
+                <span>TOTAL FACTURA:</span>
+                <span className={isDark ? 'text-blue-400' : 'text-blue-700 font-extrabold'}>
                   {formatCurrency(summary.grandTotalCents)}
                 </span>
               </div>
@@ -473,15 +507,20 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           </div>
         </form>
 
-        {/* Modal Footer Actions */}
-        <div className="p-6 bg-slate-900 border-t border-purple-500/20 flex flex-wrap items-center justify-between gap-4">
+        <div
+          className={`p-6 border-t flex flex-wrap items-center justify-between gap-4 ${
+            isDark ? 'bg-[#131314] border-zinc-800' : 'bg-slate-50 border-slate-200'
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <label className="text-xs font-semibold text-slate-400 uppercase">Estado:</label>
+            <label className={`text-xs font-semibold uppercase ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+              Estado:
+            </label>
             <select
               disabled={isReadOnlyDueToVerifactu}
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-medium focus:outline-none disabled:opacity-60"
+              className={inputClass}
             >
               <option value="Borrador">Borrador</option>
               <option value="Pendiente">Pendiente de Pago</option>
@@ -494,7 +533,11 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium ${
+                isDark
+                  ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
+              }`}
             >
               Cancelar
             </button>
@@ -503,7 +546,11 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 <button
                   type="button"
                   onClick={(e) => handleSubmit(e, 'Borrador')}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 text-sm font-semibold flex items-center gap-2"
+                  className={`px-4 py-2.5 rounded-xl border text-sm font-semibold flex items-center gap-2 ${
+                    isDark
+                      ? 'bg-zinc-800 hover:bg-zinc-700 text-blue-300 border-blue-500/30'
+                      : 'bg-white hover:bg-slate-100 text-blue-700 border-blue-300 shadow-sm'
+                  }`}
                 >
                   <FontAwesomeIcon icon={faSave} />
                   <span>Guardar Borrador</span>
@@ -511,7 +558,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 <button
                   type="button"
                   onClick={(e) => handleSubmit(e, 'Pendiente')}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white text-sm font-semibold shadow-lg shadow-purple-950/50 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-950/50 flex items-center gap-2"
                 >
                   <FontAwesomeIcon icon={faCheckCircle} />
                   <span>Emitir Factura</span>
