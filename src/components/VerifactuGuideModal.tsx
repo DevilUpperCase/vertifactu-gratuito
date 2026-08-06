@@ -18,9 +18,9 @@ export const VerifactuGuideModal: React.FC<VerifactuGuideModalProps> = ({
   const isDark = theme === 'dark';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed top-20 inset-x-0 bottom-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
       <div
-        className={`border rounded-3xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl ${
+        className={`border rounded-3xl w-full max-w-3xl max-h-[calc(100vh-120px)] overflow-hidden flex flex-col shadow-2xl ${
           isDark ? 'bg-[#1e1f20] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
         }`}
       >
