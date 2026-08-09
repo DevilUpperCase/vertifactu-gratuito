@@ -12,10 +12,14 @@ import {
   faCalendarAlt,
   faFilter,
   faRotateLeft,
+  faDownload,
+  faUpload,
 } from '../utils/icons';
 import { Client } from '../types';
 import { deleteClient, getClients, saveClient } from '../services/database';
 import { Paginacion } from '../components/Paginacion';
+import { ClientCsvGuideModal } from '../components/ClientCsvGuideModal';
+import { exportClientsToCsv } from '../utils/csvClientHelper';
 
 interface ClientsPageProps {
   theme?: 'dark' | 'light';
@@ -36,6 +40,7 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
   const [elementosPorPagina, setElementosPorPagina] = useState(10);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCsvGuideModalOpen, setIsCsvGuideModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Partial<Client> | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,6 +66,35 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
   useEffect(() => {
     setPaginaActual(1);
   }, [searchQuery, fechaCreacionDesde, fechaCreacionHasta, ultimaFacturaDesde, ultimaFacturaHasta]);
+
+  const handleImportClients = async (importedClients: Omit<Client, 'id'>[]) => {
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    for (const clientData of importedClients) {
+      const existing = clients.find(
+        (c) => c.nif.trim().toUpperCase() === clientData.nif.trim().toUpperCase()
+      );
+
+      await saveClient({
+        id: existing?.id,
+        nif: clientData.nif,
+        name: clientData.name,
+        address: clientData.address,
+        email: clientData.email,
+        default_retention_irpf: clientData.default_retention_irpf,
+      });
+
+      if (existing) {
+        updatedCount++;
+      } else {
+        createdCount++;
+      }
+    }
+
+    await loadClientsList();
+    alert(`Importación masiva completada con éxito:\n- ${createdCount} nuevos clientes creados.\n- ${updatedCount} clientes existentes actualizados.`);
+  };
 
   const handleOpenCreateModal = () => {
     setEditingClient({
@@ -179,11 +213,11 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
             </h3>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {hayFiltrosActivos && (
               <button
                 onClick={handleResetFilters}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors ${
                   isDark
                     ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -193,6 +227,32 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                 <span>Limpiar Filtros</span>
               </button>
             )}
+
+            <button
+              onClick={() => exportClientsToCsv(filteredClients)}
+              className={`px-3.5 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                isDark
+                  ? 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 border-zinc-700'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300 shadow-sm'
+              }`}
+              title="Descargar clientes filtrados en formato CSV"
+            >
+              <FontAwesomeIcon icon={faDownload} />
+              <span>Descargar CSV</span>
+            </button>
+
+            <button
+              onClick={() => setIsCsvGuideModalOpen(true)}
+              className={`px-3.5 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                isDark
+                  ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border-blue-500/40'
+                  : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 shadow-sm'
+              }`}
+              title="Subir clientes por CSV y consultar guía de columnas"
+            >
+              <FontAwesomeIcon icon={faUpload} />
+              <span>Importar / Guía CSV</span>
+            </button>
 
             <button
               onClick={handleOpenCreateModal}
@@ -479,23 +539,24 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                               className={`p-1.5 rounded-lg cursor-not-allowed ${
                                 isDark ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'
                               }`}
-                            title="El cliente por defecto no se puede eliminar"
-                          >
-                            <FontAwesomeIcon icon={faTrash} />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleDeleteClient(client.id, client.name)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isDark
-                                ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
-                                : 'bg-rose-50 hover:bg-rose-100 text-rose-600'
-                            }`}
-                            title="Eliminar cliente"
-                          >
-                            <FontAwesomeIcon icon={faTrash} />
-                          </button>
-                        )}
+                              title="El cliente por defecto no se puede eliminar"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleDeleteClient(client.id, client.name)}
+                              className={`p-1.5 rounded-lg transition-colors ${
+                                isDark
+                                  ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
+                                  : 'bg-rose-50 hover:bg-rose-100 text-rose-600'
+                              }`}
+                              title="Eliminar cliente"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -660,6 +721,13 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
         </div>,
         document.body
       )}
+
+      <ClientCsvGuideModal
+        isOpen={isCsvGuideModalOpen}
+        onClose={() => setIsCsvGuideModalOpen(false)}
+        onImportClients={handleImportClients}
+        theme={theme}
+      />
     </div>
   );
 };

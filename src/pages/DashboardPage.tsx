@@ -284,13 +284,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </button>
           </div>
         ) : (
-          {/* 
-            Gestión de scroll horizontal en tablas:
-            Se utiliza overflow-x-hidden en el contenedor envolvente de la tabla para evitar 
-            la aparición de barra de scroll horizontal y forzar que el texto sobreexpuesto 
-            haga salto de línea (wrap) hacia abajo.
-          */}
           <div className="overflow-x-hidden w-full">
+            {/* 
+              Gestión de scroll horizontal en tablas:
+              Se utiliza overflow-x-hidden en el contenedor envolvente de la tabla para evitar 
+              la aparición de barra de scroll horizontal y forzar que el texto sobreexpuesto 
+              haga salto de línea (wrap) hacia abajo.
+            */}
             <table className="w-full text-left text-sm whitespace-normal">
               <thead
                 className={`text-xs uppercase border-b ${
