@@ -390,11 +390,12 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
           <div className="space-y-4">
             {/* 
               Gestión de scroll horizontal en tablas:
-              Se utiliza overflow-x-auto en el contenedor envolvente de la tabla para garantizar que en 
-              pantallas estrechas el layout no rompa ni genere desbordamientos no deseados en el viewport global.
+              Se utiliza overflow-x-hidden en el contenedor envolvente de la tabla para evitar 
+              la aparición de barra de scroll horizontal y garantizar que todo el contenido 
+              se adapte al ancho disponible envolviendo el texto (word-wrap) hacia abajo.
             */}
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left text-sm whitespace-nowrap">
+            <div className="overflow-x-hidden w-full">
+              <table className="w-full text-left text-sm whitespace-normal">
                 <thead
                   className={`text-xs uppercase border-b ${
                     isDark
@@ -403,13 +404,13 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                   }`}
                 >
                   <tr>
-                    <th className="py-3.5 px-4">Número</th>
-                    <th className="py-3.5 px-4">Cliente</th>
-                    <th className="py-3.5 px-4">Emisión</th>
-                    <th className="py-3.5 px-4">Estado</th>
-                    <th className="py-3.5 px-4 text-right">Base Imponible</th>
-                    <th className="py-3.5 px-4 text-right">Total Factura</th>
-                    <th className="py-3.5 px-4 text-center">Acciones</th>
+                    <th className="py-3 px-3 font-semibold break-words">Número</th>
+                    <th className="py-3 px-3 font-semibold break-words">Cliente</th>
+                    <th className="py-3 px-3 font-semibold break-words">Emisión</th>
+                    <th className="py-3 px-3 font-semibold break-words">Estado</th>
+                    <th className="py-3 px-3 text-right font-semibold break-words">Base Imponible</th>
+                    <th className="py-3 px-3 text-right font-semibold break-words">Total Factura</th>
+                    <th className="py-3 px-3 text-center font-semibold break-words">Acciones</th>
                   </tr>
                 </thead>
                 <tbody
@@ -425,32 +426,34 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                       }`}
                     >
                       <td
-                        className={`py-3.5 px-4 font-mono font-bold ${
+                        className={`py-3 px-3 font-mono font-bold text-xs break-all ${
                           isDark ? 'text-blue-300' : 'text-blue-700'
                         }`}
                       >
-                        {inv.invoice_number}
-                        {inv.is_rectification && (
-                          <span
-                            className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
-                              isDark
-                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                                : 'bg-rose-100 text-rose-800 border-rose-300'
-                            }`}
-                          >
-                            Rectificativa
-                          </span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span>{inv.invoice_number}</span>
+                          {inv.is_rectification && (
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                                isDark
+                                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                  : 'bg-rose-100 text-rose-800 border-rose-300'
+                              }`}
+                            >
+                              Rectificativa
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className={`py-3.5 px-4 font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      <td className={`py-3 px-3 font-semibold break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {inv.client_name || 'N/A'}
                       </td>
-                      <td className={`py-3.5 px-4 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <td className={`py-3 px-3 text-xs break-words ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         {inv.issue_date}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3 break-words">
                         <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                          className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
                             inv.status === 'Pagada'
                               ? isDark
                                 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
@@ -471,18 +474,18 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                           {inv.status}
                         </span>
                       </td>
-                      <td className={`py-3.5 px-4 text-right font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      <td className={`py-3 px-3 text-right font-medium text-xs break-words ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                         {formatCurrency(inv.total_base)}
                       </td>
-                      <td className={`py-3.5 px-4 text-right font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      <td className={`py-3 px-3 text-right font-extrabold text-xs break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {formatCurrency(inv.grand_total)}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
+                      <td className="py-3 px-3 text-center">
+                        <div className="flex flex-wrap items-center justify-center gap-1">
                           {/* Ver / PDF */}
                           <button
                             onClick={() => handleOpenPdfModal(inv.id!)}
-                            className={`p-2 rounded-lg transition-colors ${
+                            className={`p-1.5 rounded-lg transition-colors ${
                               isDark
                                 ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
                                 : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
@@ -498,7 +501,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                               const full = await getInvoiceById(inv.id!);
                               if (full) onEditInvoice(full);
                             }}
-                            className={`p-2 rounded-lg transition-colors ${
+                            className={`p-1.5 rounded-lg transition-colors ${
                               isDark
                                 ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
                                 : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
@@ -514,7 +517,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                               setTemplateInvoiceId(inv.id!);
                               setIsTemplateModalOpen(true);
                             }}
-                            className={`p-2 rounded-lg transition-colors ${
+                            className={`p-1.5 rounded-lg transition-colors ${
                               isDark
                                 ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300'
                                 : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200'
@@ -528,7 +531,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                           {!inv.is_rectification && inv.status !== 'Borrador' && (
                             <button
                               onClick={() => handleCreateRectification(inv.id!, inv.invoice_number)}
-                              className={`p-2 rounded-lg transition-colors ${
+                              className={`p-1.5 rounded-lg transition-colors ${
                                 isDark
                                   ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300'
                                   : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
@@ -542,7 +545,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                           {/* Eliminar (si borrador) */}
                           <button
                             onClick={() => handleDeleteInvoice(inv.id!)}
-                            className={`p-2 rounded-lg transition-colors ${
+                            className={`p-1.5 rounded-lg transition-colors ${
                               isDark
                                 ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
                                 : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'

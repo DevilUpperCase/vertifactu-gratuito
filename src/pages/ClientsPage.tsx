@@ -356,12 +356,12 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
           <div className="space-y-4">
             {/* 
               Gestión de scroll horizontal en tablas:
-              Se utiliza overflow-x-auto en el contenedor envolvente de la tabla para garantizar que en 
-              pantallas estrechas o con múltiples columnas el layout no rompa ni genere desbordamientos 
-              no deseados en el viewport global.
+              Se utiliza overflow-x-hidden en el contenedor envolvente de la tabla para evitar 
+              la aparición de barra de scroll horizontal y forzar el salto de línea vertical (wrap) 
+              de las columnas para ver toda la información de una sola vez.
             */}
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left text-sm whitespace-nowrap">
+            <div className="overflow-x-hidden w-full">
+              <table className="w-full text-left text-sm whitespace-normal">
                 <thead
                   className={`text-xs uppercase border-b ${
                     isDark
@@ -370,14 +370,14 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                   }`}
                 >
                   <tr>
-                    <th className="py-3.5 px-4">NIF / CIF</th>
-                    <th className="py-3.5 px-4">Nombre / Razón Social</th>
-                    <th className="py-3.5 px-4">Dirección Fiscal</th>
-                    <th className="py-3.5 px-4">Correo Electrónico</th>
-                    <th className="py-3.5 px-4 text-center">Retención IRPF</th>
-                    <th className="py-3.5 px-4 text-center">Fecha Alta</th>
-                    <th className="py-3.5 px-4 text-center">Última Factura</th>
-                    <th className="py-3.5 px-4 text-center">Acciones</th>
+                    <th className="py-3 px-3 font-semibold break-words">NIF / CIF</th>
+                    <th className="py-3 px-3 font-semibold break-words">Nombre / Razón Social</th>
+                    <th className="py-3 px-3 font-semibold break-words">Dirección Fiscal</th>
+                    <th className="py-3 px-3 font-semibold break-words">Correo Electrónico</th>
+                    <th className="py-3 px-3 text-center font-semibold break-words">Retención IRPF</th>
+                    <th className="py-3 px-3 text-center font-semibold break-words">Fecha Alta</th>
+                    <th className="py-3 px-3 text-center font-semibold break-words">Última Factura</th>
+                    <th className="py-3 px-3 text-center font-semibold break-words">Acciones</th>
                   </tr>
                 </thead>
                 <tbody
@@ -393,19 +393,19 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                       }`}
                     >
                       <td
-                        className={`py-3.5 px-4 font-mono font-semibold ${
+                        className={`py-3 px-3 font-mono font-semibold text-xs break-all ${
                           isDark ? 'text-blue-300' : 'text-blue-700'
                         }`}
                       >
                         {client.nif}
                       </td>
                       <td
-                        className={`py-3.5 px-4 font-semibold ${
+                        className={`py-3 px-3 font-semibold break-words ${
                           isDark ? 'text-white' : 'text-slate-900'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span>{client.name}</span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="break-words">{client.name}</span>
                           {client.id === 1 && (
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
@@ -420,20 +420,20 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                         </div>
                       </td>
                       <td
-                        className={`py-3.5 px-4 text-xs truncate max-w-xs ${
+                        className={`py-3 px-3 text-xs break-words ${
                           isDark ? 'text-slate-400' : 'text-slate-500'
                         }`}
                       >
                         {client.address || '-'}
                       </td>
                       <td
-                        className={`py-3.5 px-4 text-xs ${
+                        className={`py-3 px-3 text-xs break-all ${
                           isDark ? 'text-slate-400' : 'text-slate-500'
                         }`}
                       >
                         {client.email || '-'}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3 px-3 text-center break-words">
                         {client.default_retention_irpf ? (
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 ${
@@ -448,36 +448,37 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                           <span className="text-xs text-slate-400">No</span>
                         )}
                       </td>
-                      <td className={`py-3.5 px-4 text-center text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <td className={`py-3 px-3 text-center text-xs break-words ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                         {client.created_at ? client.created_at.substring(0, 10) : '-'}
                       </td>
-                      <td className={`py-3.5 px-4 text-center text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      <td className={`py-3 px-3 text-center text-xs font-medium break-words ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                         {client.last_invoice_date ? (
-                          <span className={`px-2 py-0.5 rounded-lg ${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
+                          <span className={`inline-block px-2 py-0.5 rounded-lg ${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
                             {client.last_invoice_date.substring(0, 10)}
                           </span>
                         ) : (
                           <span className="text-slate-500 italic text-[11px]">Sin facturas</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-center space-x-2">
-                        <button
-                          onClick={() => handleOpenEditModal(client)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark
-                              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
-                              : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-                          }`}
-                          title="Editar cliente"
-                        >
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
-                        {client.id === 1 ? (
+                      <td className="py-3 px-3 text-center">
+                        <div className="flex flex-wrap items-center justify-center gap-1">
                           <button
-                            disabled
-                            className={`p-2 rounded-lg cursor-not-allowed ${
-                              isDark ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'
+                            onClick={() => handleOpenEditModal(client)}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              isDark
+                                ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
+                                : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
                             }`}
+                            title="Editar cliente"
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                          {client.id === 1 ? (
+                            <button
+                              disabled
+                              className={`p-1.5 rounded-lg cursor-not-allowed ${
+                                isDark ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'
+                              }`}
                             title="El cliente por defecto no se puede eliminar"
                           >
                             <FontAwesomeIcon icon={faTrash} />

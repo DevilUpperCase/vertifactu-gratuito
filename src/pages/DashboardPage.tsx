@@ -284,8 +284,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          {/* 
+            Gestión de scroll horizontal en tablas:
+            Se utiliza overflow-x-hidden en el contenedor envolvente de la tabla para evitar 
+            la aparición de barra de scroll horizontal y forzar que el texto sobreexpuesto 
+            haga salto de línea (wrap) hacia abajo.
+          */}
+          <div className="overflow-x-hidden w-full">
+            <table className="w-full text-left text-sm whitespace-normal">
               <thead
                 className={`text-xs uppercase border-b ${
                   isDark
@@ -294,13 +300,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 }`}
               >
                 <tr>
-                  <th className="py-3 px-4">Número</th>
-                  <th className="py-3 px-4">Cliente</th>
-                  <th className="py-3 px-4">Fecha</th>
-                  <th className="py-3 px-4">Estado</th>
-                  <th className="py-3 px-4 text-right">Base Imponible</th>
-                  <th className="py-3 px-4 text-right">Total Factura</th>
-                  <th className="py-3 px-4 text-center">Acciones</th>
+                  <th className="py-3 px-3 font-semibold break-words">Número</th>
+                  <th className="py-3 px-3 font-semibold break-words">Cliente</th>
+                  <th className="py-3 px-3 font-semibold break-words">Fecha</th>
+                  <th className="py-3 px-3 font-semibold break-words">Estado</th>
+                  <th className="py-3 px-3 text-right font-semibold break-words">Base Imponible</th>
+                  <th className="py-3 px-3 text-right font-semibold break-words">Total Factura</th>
+                  <th className="py-3 px-3 text-center font-semibold break-words">Acciones</th>
                 </tr>
               </thead>
               <tbody
@@ -316,34 +322,36 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     }`}
                   >
                     <td
-                      className={`py-3.5 px-4 font-bold ${
+                      className={`py-3 px-3 font-bold text-xs break-all ${
                         isDark ? 'text-blue-300' : 'text-blue-700'
                       }`}
                     >
-                      {inv.invoice_number}
-                      {inv.is_rectification && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/40">
-                          Rectificativa
-                        </span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span>{inv.invoice_number}</span>
+                        {inv.is_rectification && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/40">
+                            Rectificativa
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td
-                      className={`py-3.5 px-4 font-medium ${
+                      className={`py-3 px-3 font-medium break-words ${
                         isDark ? 'text-white' : 'text-slate-900'
                       }`}
                     >
                       {inv.client_name || 'N/A'}
                     </td>
                     <td
-                      className={`py-3.5 px-4 text-xs ${
+                      className={`py-3 px-3 text-xs break-words ${
                         isDark ? 'text-slate-400' : 'text-slate-500'
                       }`}
                     >
                       {inv.issue_date}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3 px-3 break-words">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                        className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
                           inv.status === 'Pagada'
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                             : inv.status === 'Pendiente'
@@ -358,28 +366,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         {inv.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-medium">
+                    <td className="py-3 px-3 text-right font-medium text-xs break-words">
                       {formatCurrency(inv.total_base)}
                     </td>
                     <td
-                      className={`py-3.5 px-4 text-right font-bold ${
+                      className={`py-3 px-3 text-right font-bold text-xs break-words ${
                         isDark ? 'text-white' : 'text-slate-900'
                       }`}
                     >
                       {formatCurrency(inv.grand_total)}
                     </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={() => onViewInvoice(inv)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          isDark
-                            ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
-                            : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-                        }`}
-                        title="Ver detalle de factura"
-                      >
-                        <FontAwesomeIcon icon={faEye} />
-                      </button>
+                    <td className="py-3 px-3 text-center">
+                      <div className="flex flex-wrap items-center justify-center gap-1">
+                        <button
+                          onClick={() => onViewInvoice(inv)}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isDark
+                              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
+                              : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
+                          }`}
+                          title="Ver detalle de factura"
+                        >
+                          <FontAwesomeIcon icon={faEye} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
