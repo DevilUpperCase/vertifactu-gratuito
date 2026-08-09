@@ -158,6 +158,7 @@ export const App: React.FC = () => {
           title={getHeaderTitle()}
           verifactuEnabled={Boolean(settings?.verifactu_enabled)}
           onNewInvoice={handleOpenNewInvoice}
+          onOpenGuide={() => setIsGuideModalOpen(true)}
           theme={theme}
           onToggleTheme={toggleTheme}
         />
@@ -170,6 +171,7 @@ export const App: React.FC = () => {
               onNavigateToInvoices={() => setActiveTab('invoices')}
               onNavigateToClients={() => setActiveTab('clients')}
               onNavigateToSettings={() => setActiveTab('settings')}
+              onOpenGuide={() => setIsGuideModalOpen(true)}
               refreshTrigger={invoicesRefreshTrigger}
               theme={theme}
             />

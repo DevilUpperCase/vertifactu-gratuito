@@ -41,9 +41,9 @@ export const VerifactuGuideModal: React.FC<VerifactuGuideModalProps> = ({
               <FontAwesomeIcon icon={faShieldAlt} className="text-xl" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Guía Oficial Verifactu AEAT & Ley Antifraude</h2>
+              <h2 className="text-xl font-bold">Guía Verifactu AEAT</h2>
               <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-blue-100'}`}>
-                Requisitos de Inmutabilidad, Certificados Digitales y Hash SHA-256
+                Normativa RD 1007/2023, Ley Antifraude 11/2021 y Especificaciones Técnicas AEAT
               </p>
             </div>
           </div>

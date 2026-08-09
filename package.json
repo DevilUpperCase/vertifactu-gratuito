@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "neu:run": "neu run",
+    "neu:run": "start bin/neutralino-win_x64.exe --load-dir-res --path=. --export-auth-info",
     "neu:build": "neu build"
   },
   "dependencies": {

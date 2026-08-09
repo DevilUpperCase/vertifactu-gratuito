@@ -12,6 +12,7 @@ let sqlJsStatic: SqlJsStatic | null = null;
 declare global {
   interface Window {
     Neutralino?: any;
+    NL_TOKEN?: any;
   }
 }
 
@@ -159,7 +160,7 @@ export async function initDatabase(): Promise<Database> {
   if (dbInstance) return dbInstance;
 
   sqlJsStatic = await initSqlJs({
-    locateFile: (file: string) => `/${file}`,
+    locateFile: (file: string) => `./${file}`,
   });
 
   if (!sqlJsStatic) {

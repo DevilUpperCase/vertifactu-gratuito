@@ -12,19 +12,7 @@
     "writeToLogFile": true
   },
   "nativeAllowList": [
-    "*",
-    "app.*",
-    "os.*",
-    "filesystem.*",
-    "filesystem.readBinaryFile",
-    "filesystem.writeBinaryFile",
-    "filesystem.readFile",
-    "filesystem.writeFile",
-    "filesystem.readDirectory",
-    "filesystem.createDirectory",
-    "storage.*",
-    "window.*",
-    "events.*"
+    "*"
   ],
   "nativeBlockList": [],
   "globalVariables": {
@@ -33,7 +21,7 @@
   "modes": {
     "window": {
       "title": "Verifactu Gratuito Taratic",
-      "icon": "/public/favicon.webp",
+      "icon": "/icon.png",
       "width": 1280,
       "height": 850,
       "minWidth": 1024,
@@ -50,7 +38,6 @@
   "cli": {
     "binaryName": "verifactu-gratuito-taratic",
     "resourcesPath": "/dist/",
-    "extensionsPath": "/extensions/",
     "clientLibrary": "/neutralino.js",
     "binaryVersion": "6.9.0",
     "clientVersion": "6.9.0"

@@ -6,6 +6,7 @@ interface HeaderProps {
   title: string;
   verifactuEnabled: boolean;
   onNewInvoice: () => void;
+  onOpenGuide?: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
 }
@@ -14,6 +15,7 @@ export const Header: React.FC<HeaderProps> = ({
   title,
   verifactuEnabled,
   onNewInvoice,
+  onOpenGuide,
   theme,
   onToggleTheme,
 }) => {
@@ -49,16 +51,19 @@ export const Header: React.FC<HeaderProps> = ({
           <span>SQLite WASM Activo</span>
         </div>
 
-        {/* Verifactu badge */}
-        <div
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border ${
+        {/* Verifactu badge / Guide Trigger */}
+        <button
+          type="button"
+          onClick={onOpenGuide}
+          title="Abrir Guía Verifactu AEAT"
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all hover:scale-105 active:scale-95 cursor-pointer ${
             verifactuEnabled
               ? isDark
-                ? 'bg-blue-950/70 text-blue-300 border-blue-500/40 shadow-sm shadow-blue-900/40'
-                : 'bg-blue-50 text-blue-700 border-blue-300'
+                ? 'bg-blue-950/70 text-blue-300 border-blue-500/40 shadow-sm shadow-blue-900/40 hover:bg-blue-900/80'
+                : 'bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100'
               : isDark
-              ? 'bg-slate-900 text-slate-500 border-slate-800'
-              : 'bg-slate-100 text-slate-400 border-slate-200'
+              ? 'bg-slate-900 text-slate-500 border-slate-800 hover:bg-slate-800'
+              : 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200'
           }`}
         >
           <FontAwesomeIcon
@@ -66,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={verifactuEnabled ? (isDark ? 'text-blue-400' : 'text-blue-600') : 'text-slate-400'}
           />
           <span>{verifactuEnabled ? 'Verifactu ON' : 'Verifactu OFF'}</span>
-        </div>
+        </button>
 
         {/* Theme Toggle Button */}
         <button

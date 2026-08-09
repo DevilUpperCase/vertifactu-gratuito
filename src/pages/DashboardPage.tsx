@@ -19,6 +19,7 @@ interface DashboardPageProps {
   onNavigateToInvoices: () => void;
   onNavigateToClients: () => void;
   onNavigateToSettings: () => void;
+  onOpenGuide?: () => void;
   refreshTrigger?: number;
   theme?: 'dark' | 'light';
 }
@@ -29,6 +30,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onNavigateToInvoices,
   onNavigateToClients,
   onNavigateToSettings,
+  onOpenGuide,
   refreshTrigger,
   theme = 'dark',
 }) => {
@@ -159,33 +161,48 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
 
         {/* Card 4: Verifactu Status */}
-        <div className={`p-6 rounded-3xl border transition-all ${cardBgClass}`}>
-          <div className="flex items-center justify-between mb-4">
-            <span
-              className={`text-xs font-bold uppercase tracking-wider ${
-                isDark ? 'text-cyan-400' : 'text-cyan-600'
-              }`}
-            >
-              Verifactu AEAT
-            </span>
-            <div
-              className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${
-                isDark
-                  ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
-                  : 'bg-cyan-50 border-cyan-200 text-cyan-600'
-              }`}
-            >
-              <FontAwesomeIcon icon={faShieldAlt} />
+        <div className={`p-6 rounded-3xl border transition-all flex flex-col justify-between ${cardBgClass}`}>
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span
+                className={`text-xs font-bold uppercase tracking-wider ${
+                  isDark ? 'text-cyan-400' : 'text-cyan-600'
+                }`}
+              >
+                Verifactu AEAT
+              </span>
+              <div
+                className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${
+                  isDark
+                    ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                    : 'bg-cyan-50 border-cyan-200 text-cyan-600'
+                }`}
+              >
+                <FontAwesomeIcon icon={faShieldAlt} />
+              </div>
             </div>
+            <div className="text-2xl font-bold tracking-tight">
+              {settings?.verifactu_enabled ? 'Inmutable (ON)' : 'Estándar (OFF)'}
+            </div>
+            <p className={`text-xs mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {settings?.verifactu_enabled
+                ? 'Firma digital y huella XML activas'
+                : 'Haz clic en Configuración para activar'}
+            </p>
           </div>
-          <div className="text-2xl font-bold tracking-tight">
-            {settings?.verifactu_enabled ? 'Inmutable (ON)' : 'Estándar (OFF)'}
-          </div>
-          <p className={`text-xs mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {settings?.verifactu_enabled
-              ? 'Firma digital y huella XML activas'
-              : 'Haz clic en Configuración para activar'}
-          </p>
+          {onOpenGuide && (
+            <button
+              onClick={onOpenGuide}
+              className={`mt-3 w-full py-1.5 px-3 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                isDark
+                  ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border-blue-500/30'
+                  : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
+              }`}
+            >
+              <FontAwesomeIcon icon={faShieldAlt} className="text-[11px]" />
+              <span>Guía Verifactu AEAT</span>
+            </button>
+          )}
         </div>
       </div>
 
