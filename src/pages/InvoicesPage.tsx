@@ -16,6 +16,9 @@ import {
   faQrcode,
   faTimes,
   faLock,
+  faCalendarAlt,
+  faFilter,
+  faRotateLeft,
 } from '../utils/icons';
 import { Client, Invoice, Settings } from '../types';
 import {
@@ -30,6 +33,7 @@ import {
 import { formatCurrency } from '../utils/currency';
 import { generateInvoicePdf } from '../services/pdfGenerator';
 import { processVerifactuInvoice, VerifactuResult } from '../services/verifactu';
+import { Paginacion } from '../components/Paginacion';
 
 interface InvoicesPageProps {
   onNewInvoice: () => void;
@@ -52,8 +56,15 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
 
   const isDark = theme === 'dark';
 
+  // Filtros
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [fechaEmisionDesde, setFechaEmisionDesde] = useState('');
+  const [fechaEmisionHasta, setFechaEmisionHasta] = useState('');
+
+  // Estado de Paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [elementosPorPagina, setElementosPorPagina] = useState(10);
 
   // PDF Preview & Options Modal State
   const [selectedInvoiceForPdf, setSelectedInvoiceForPdf] = useState<Invoice | null>(null);
@@ -85,6 +96,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
   useEffect(() => {
     loadInvoicesData();
   }, [refreshTrigger]);
+
+  // Reiniciar a la primera página si cambian los filtros
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [searchQuery, statusFilter, fechaEmisionDesde, fechaEmisionHasta]);
 
   // Abrir vista previa y generación de PDF
   const handleOpenPdfModal = async (invoiceId: number) => {
@@ -171,13 +187,37 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
     }
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('ALL');
+    setFechaEmisionDesde('');
+    setFechaEmisionHasta('');
+    setPaginaActual(1);
+  };
+
+  const hayFiltrosActivos =
+    searchQuery !== '' ||
+    statusFilter !== 'ALL' ||
+    fechaEmisionDesde !== '' ||
+    fechaEmisionHasta !== '';
+
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch =
       inv.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (inv.client_name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const invDate = inv.issue_date ? inv.issue_date.substring(0, 10) : '';
+    const matchesDateFrom = !fechaEmisionDesde || (invDate && invDate >= fechaEmisionDesde);
+    const matchesDateTo = !fechaEmisionHasta || (invDate && invDate <= fechaEmisionHasta);
+
+    return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
   });
+
+  // Paginación de resultados
+  const paginatedInvoices = filteredInvoices.slice(
+    (paginaActual - 1) * elementosPorPagina,
+    paginaActual * elementosPorPagina
+  );
 
   const cardBgClass = isDark
     ? 'bg-[#1e1f20] border-zinc-800 shadow-xl text-zinc-100'
@@ -185,54 +225,137 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
-      {/* Top Filter and Actions Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Search */}
-        <div className="relative w-full md:w-80">
-          <FontAwesomeIcon
-            icon={faSearch}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"
-          />
-          <input
-            type="text"
-            placeholder="Buscar por número o cliente..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-11 pr-4 py-2.5 rounded-2xl border text-sm focus:outline-none focus:border-blue-500 transition-colors ${
-              isDark
-                ? 'bg-slate-900/90 border-slate-800 text-white placeholder-slate-500'
-                : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 shadow-sm'
-            }`}
-          />
-        </div>
+      {/* Panel Superior: Filtros de Búsqueda y Acciones */}
+      <div className={`border rounded-3xl p-5 backdrop-blur-xl shadow-xl ${cardBgClass}`}>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faFilter} className="text-blue-500 text-sm" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-blue-500">
+              Filtros y Búsqueda de Facturas
+            </h3>
+          </div>
 
-        {/* Status Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-          {['ALL', 'Borrador', 'Pendiente', 'Pagada', 'Anulada'].map((st) => (
+          <div className="flex items-center gap-3">
+            {hayFiltrosActivos && (
+              <button
+                onClick={handleResetFilters}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                  isDark
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <FontAwesomeIcon icon={faRotateLeft} className="text-xs" />
+                <span>Limpiar Filtros</span>
+              </button>
+            )}
+
             <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
-                statusFilter === st
-                  ? 'bg-gradient-to-r from-[#0055ff] to-blue-600 text-white shadow-md shadow-blue-950/50'
-                  : isDark
-                  ? 'bg-slate-900/90 text-slate-400 border border-slate-800 hover:text-white'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900 shadow-sm'
-              }`}
+              onClick={onNewInvoice}
+              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 shrink-0 transition-transform hover:scale-105"
             >
-              {st === 'ALL' ? 'Todas' : st}
+              <FontAwesomeIcon icon={faPlus} />
+              <span>Nueva Factura</span>
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* New Invoice Button */}
-        <button
-          onClick={onNewInvoice}
-          className="w-full md:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 shrink-0 transition-transform hover:scale-105"
-        >
-          <FontAwesomeIcon icon={faPlus} />
-          <span>Nueva Factura</span>
-        </button>
+        {/* Formulario de Filtros */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          {/* Buscar por número o cliente */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Búsqueda por texto
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faSearch}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="text"
+                placeholder="Número o cliente..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white placeholder-slate-500'
+                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Fecha Emisión: Desde */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Fecha Emisión (Desde)
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faCalendarAlt}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="date"
+                value={fechaEmisionDesde}
+                onChange={(e) => setFechaEmisionDesde(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white'
+                    : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Fecha Emisión: Hasta */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Fecha Emisión (Hasta)
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faCalendarAlt}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="date"
+                value={fechaEmisionHasta}
+                onChange={(e) => setFechaEmisionHasta(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white'
+                    : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Pills de Estado */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Estado de Factura
+            </label>
+            <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+              {['ALL', 'Borrador', 'Pendiente', 'Pagada', 'Anulada'].map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all shrink-0 ${
+                    statusFilter === st
+                      ? 'bg-gradient-to-r from-[#0055ff] to-blue-600 text-white shadow-md shadow-blue-950/50'
+                      : isDark
+                      ? 'bg-slate-900/90 text-slate-400 border border-slate-800 hover:text-white'
+                      : 'bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-900 shadow-sm'
+                  }`}
+                >
+                  {st === 'ALL' ? 'Todas' : st}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Invoices Table Card */}
@@ -251,7 +374,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                 Listado de Facturas
               </h2>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Total listadas: {filteredInvoices.length}
+                Mostrando {filteredInvoices.length} de {invoices.length} facturas registradas
               </p>
             </div>
           </div>
@@ -259,173 +382,192 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
 
         {filteredInvoices.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-sm">
-            No se encontraron facturas con el criterio seleccionado.
+            {hayFiltrosActivos
+              ? 'No se encontraron facturas con los filtros seleccionados. Prueba a ajustar el rango de fechas o el estado.'
+              : 'No se encontraron facturas registradas.'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead
-                className={`text-xs uppercase border-b ${
-                  isDark
-                    ? 'text-slate-400 bg-black/40 border-slate-800'
-                    : 'text-slate-500 bg-slate-100 border-slate-200'
-                }`}
-              >
-                <tr>
-                  <th className="py-3.5 px-4">Número</th>
-                  <th className="py-3.5 px-4">Cliente</th>
-                  <th className="py-3.5 px-4">Emisión</th>
-                  <th className="py-3.5 px-4">Estado</th>
-                  <th className="py-3.5 px-4 text-right">Base Imponible</th>
-                  <th className="py-3.5 px-4 text-right">Total Factura</th>
-                  <th className="py-3.5 px-4 text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody
-                className={`divide-y ${
-                  isDark ? 'divide-slate-800/60 text-slate-300' : 'divide-slate-200 text-slate-700'
-                }`}
-              >
-                {filteredInvoices.map((inv) => (
-                  <tr
-                    key={inv.id}
-                    className={`transition-colors ${
-                      isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <td
-                      className={`py-3.5 px-4 font-mono font-bold ${
-                        isDark ? 'text-blue-300' : 'text-blue-700'
+          <div className="space-y-4">
+            {/* 
+              Gestión de scroll horizontal en tablas:
+              Se utiliza overflow-x-auto en el contenedor envolvente de la tabla para garantizar que en 
+              pantallas estrechas el layout no rompa ni genere desbordamientos no deseados en el viewport global.
+            */}
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead
+                  className={`text-xs uppercase border-b ${
+                    isDark
+                      ? 'text-slate-400 bg-black/40 border-slate-800'
+                      : 'text-slate-500 bg-slate-100 border-slate-200'
+                  }`}
+                >
+                  <tr>
+                    <th className="py-3.5 px-4">Número</th>
+                    <th className="py-3.5 px-4">Cliente</th>
+                    <th className="py-3.5 px-4">Emisión</th>
+                    <th className="py-3.5 px-4">Estado</th>
+                    <th className="py-3.5 px-4 text-right">Base Imponible</th>
+                    <th className="py-3.5 px-4 text-right">Total Factura</th>
+                    <th className="py-3.5 px-4 text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody
+                  className={`divide-y ${
+                    isDark ? 'divide-slate-800/60 text-slate-300' : 'divide-slate-200 text-slate-700'
+                  }`}
+                >
+                  {paginatedInvoices.map((inv) => (
+                    <tr
+                      key={inv.id}
+                      className={`transition-colors ${
+                        isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      {inv.invoice_number}
-                      {inv.is_rectification && (
-                        <span
-                          className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
-                            isDark
-                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                              : 'bg-rose-100 text-rose-800 border-rose-300'
-                          }`}
-                        >
-                          Rectificativa
-                        </span>
-                      )}
-                    </td>
-                    <td className={`py-3.5 px-4 font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {inv.client_name || 'N/A'}
-                    </td>
-                    <td className={`py-3.5 px-4 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                      {inv.issue_date}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                          inv.status === 'Pagada'
-                            ? isDark
-                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                              : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                            : inv.status === 'Pendiente'
-                            ? isDark
-                              ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                              : 'bg-amber-100 text-amber-800 border-amber-300'
-                            : inv.status === 'Anulada'
-                            ? isDark
-                              ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                              : 'bg-rose-100 text-rose-800 border-rose-300'
-                            : isDark
-                            ? 'bg-slate-800 text-slate-300 border-slate-700'
-                            : 'bg-slate-100 text-slate-700 border-slate-300'
+                      <td
+                        className={`py-3.5 px-4 font-mono font-bold ${
+                          isDark ? 'text-blue-300' : 'text-blue-700'
                         }`}
                       >
-                        {inv.status}
-                      </span>
-                    </td>
-                    <td className={`py-3.5 px-4 text-right font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                      {formatCurrency(inv.total_base)}
-                    </td>
-                    <td className={`py-3.5 px-4 text-right font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {formatCurrency(inv.grand_total)}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {/* Ver / PDF */}
-                        <button
-                          onClick={() => handleOpenPdfModal(inv.id!)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark
-                              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
-                              : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                        {inv.invoice_number}
+                        {inv.is_rectification && (
+                          <span
+                            className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                              isDark
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                : 'bg-rose-100 text-rose-800 border-rose-300'
+                            }`}
+                          >
+                            Rectificativa
+                          </span>
+                        )}
+                      </td>
+                      <td className={`py-3.5 px-4 font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {inv.client_name || 'N/A'}
+                      </td>
+                      <td className={`py-3.5 px-4 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        {inv.issue_date}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            inv.status === 'Pagada'
+                              ? isDark
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              : inv.status === 'Pendiente'
+                              ? isDark
+                                ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                              : inv.status === 'Anulada'
+                              ? isDark
+                                ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                : 'bg-rose-100 text-rose-800 border-rose-300'
+                              : isDark
+                              ? 'bg-slate-800 text-slate-300 border-slate-700'
+                              : 'bg-slate-100 text-slate-700 border-slate-300'
                           }`}
-                          title="Ver / PDF con QR Verifactu"
                         >
-                          <FontAwesomeIcon icon={faFilePdf} />
-                        </button>
-
-                        {/* Editar (si borrador o sin bloqueo Verifactu) */}
-                        <button
-                          onClick={async () => {
-                            const full = await getInvoiceById(inv.id!);
-                            if (full) onEditInvoice(full);
-                          }}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark
-                              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
-                              : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
-                          }`}
-                          title="Editar factura"
-                        >
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
-
-                        {/* Duplicar como Plantilla */}
-                        <button
-                          onClick={() => {
-                            setTemplateInvoiceId(inv.id!);
-                            setIsTemplateModalOpen(true);
-                          }}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark
-                              ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300'
-                              : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200'
-                          }`}
-                          title="Usar como plantilla para otro cliente"
-                        >
-                          <FontAwesomeIcon icon={faCopy} />
-                        </button>
-
-                        {/* Generar Rectificativa (Abono) */}
-                        {!inv.is_rectification && inv.status !== 'Borrador' && (
+                          {inv.status}
+                        </span>
+                      </td>
+                      <td className={`py-3.5 px-4 text-right font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        {formatCurrency(inv.total_base)}
+                      </td>
+                      <td className={`py-3.5 px-4 text-right font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {formatCurrency(inv.grand_total)}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {/* Ver / PDF */}
                           <button
-                            onClick={() => handleCreateRectification(inv.id!, inv.invoice_number)}
+                            onClick={() => handleOpenPdfModal(inv.id!)}
                             className={`p-2 rounded-lg transition-colors ${
                               isDark
-                                ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300'
-                                : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+                                ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
+                                : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
                             }`}
-                            title="Generar Factura Rectificativa / Abono"
+                            title="Ver / PDF con QR Verifactu"
                           >
-                            <FontAwesomeIcon icon={faUndo} />
+                            <FontAwesomeIcon icon={faFilePdf} />
                           </button>
-                        )}
 
-                        {/* Eliminar (si borrador) */}
-                        <button
-                          onClick={() => handleDeleteInvoice(inv.id!)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark
-                              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
-                              : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
-                          }`}
-                          title="Eliminar factura"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          {/* Editar */}
+                          <button
+                            onClick={async () => {
+                              const full = await getInvoiceById(inv.id!);
+                              if (full) onEditInvoice(full);
+                            }}
+                            className={`p-2 rounded-lg transition-colors ${
+                              isDark
+                                ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
+                                : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                            }`}
+                            title="Editar factura"
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+
+                          {/* Duplicar como Plantilla */}
+                          <button
+                            onClick={() => {
+                              setTemplateInvoiceId(inv.id!);
+                              setIsTemplateModalOpen(true);
+                            }}
+                            className={`p-2 rounded-lg transition-colors ${
+                              isDark
+                                ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300'
+                                : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200'
+                            }`}
+                            title="Usar como plantilla para otro cliente"
+                          >
+                            <FontAwesomeIcon icon={faCopy} />
+                          </button>
+
+                          {/* Generar Rectificativa (Abono) */}
+                          {!inv.is_rectification && inv.status !== 'Borrador' && (
+                            <button
+                              onClick={() => handleCreateRectification(inv.id!, inv.invoice_number)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isDark
+                                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300'
+                                  : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+                              }`}
+                              title="Generar Factura Rectificativa / Abono"
+                            >
+                              <FontAwesomeIcon icon={faUndo} />
+                            </button>
+                          )}
+
+                          {/* Eliminar (si borrador) */}
+                          <button
+                            onClick={() => handleDeleteInvoice(inv.id!)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              isDark
+                                ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
+                                : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                            }`}
+                            title="Eliminar factura"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Componente de Paginación */}
+            <Paginacion
+              paginaActual={paginaActual}
+              totalElementos={filteredInvoices.length}
+              elementosPorPagina={elementosPorPagina}
+              onCambioPagina={setPaginaActual}
+              onCambioElementosPorPagina={setElementosPorPagina}
+              theme={theme}
+            />
           </div>
         )}
       </div>

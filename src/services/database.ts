@@ -269,21 +269,26 @@ export async function saveSettings(settings: Partial<Settings>): Promise<void> {
 }
 
 /**
- * Lista todos los clientes.
- */
-/**
  * Lista todos los clientes. Garantiza que siempre exista al menos un cliente por defecto.
+ * Incluye la fecha de la última factura emitida a cada cliente.
  */
 export async function getClients(): Promise<Client[]> {
   const db = await initDatabase();
-  let res = db.exec('SELECT * FROM Clients ORDER BY id ASC');
+  const selectQuery = `
+    SELECT 
+      c.*,
+      (SELECT MAX(i.issue_date) FROM Invoices i WHERE i.client_id = c.id) AS last_invoice_date
+    FROM Clients c 
+    ORDER BY c.id ASC
+  `;
+  let res = db.exec(selectQuery);
 
   if (res.length === 0 || res[0].values.length === 0) {
     db.run(
       `INSERT INTO Clients (id, nif, name, address, email, default_retention_irpf) VALUES (1, 'B35999999', 'Cliente Principal Canarias S.L.', 'Av. Marítima 1, Las Palmas de Gran Canaria', 'contacto@clienteprincipal.es', 0)`
     );
     await autoSave();
-    res = db.exec('SELECT * FROM Clients ORDER BY id ASC');
+    res = db.exec(selectQuery);
   }
 
   const cols = res[0].columns;

@@ -1,9 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSearch, faEdit, faTrash, faUsers, faTimes, faCheckCircle } from '../utils/icons';
+import {
+  faPlus,
+  faSearch,
+  faEdit,
+  faTrash,
+  faUsers,
+  faTimes,
+  faCheckCircle,
+  faCalendarAlt,
+  faFilter,
+  faRotateLeft,
+} from '../utils/icons';
 import { Client } from '../types';
 import { deleteClient, getClients, saveClient } from '../services/database';
+import { Paginacion } from '../components/Paginacion';
 
 interface ClientsPageProps {
   theme?: 'dark' | 'light';
@@ -12,6 +24,17 @@ interface ClientsPageProps {
 export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Filtros por Fechas
+  const [fechaCreacionDesde, setFechaCreacionDesde] = useState('');
+  const [fechaCreacionHasta, setFechaCreacionHasta] = useState('');
+  const [ultimaFacturaDesde, setUltimaFacturaDesde] = useState('');
+  const [ultimaFacturaHasta, setUltimaFacturaHasta] = useState('');
+
+  // Estado de Paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [elementosPorPagina, setElementosPorPagina] = useState(10);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Partial<Client> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +56,11 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
   useEffect(() => {
     loadClientsList();
   }, []);
+
+  // Reiniciar a la página 1 cuando cambia cualquier filtro
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [searchQuery, fechaCreacionDesde, fechaCreacionHasta, ultimaFacturaDesde, ultimaFacturaHasta]);
 
   const handleOpenCreateModal = () => {
     setEditingClient({
@@ -88,10 +116,51 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
     }
   };
 
-  const filteredClients = clients.filter(
-    (c) =>
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFechaCreacionDesde('');
+    setFechaCreacionHasta('');
+    setUltimaFacturaDesde('');
+    setUltimaFacturaHasta('');
+    setPaginaActual(1);
+  };
+
+  const hayFiltrosActivos =
+    searchQuery !== '' ||
+    fechaCreacionDesde !== '' ||
+    fechaCreacionHasta !== '' ||
+    ultimaFacturaDesde !== '' ||
+    ultimaFacturaHasta !== '';
+
+  const filteredClients = clients.filter((c) => {
+    const matchesSearch =
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.nif.toLowerCase().includes(searchQuery.toLowerCase())
+      c.nif.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.email || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    const clientCreationDate = c.created_at ? c.created_at.substring(0, 10) : '';
+    const matchesCreationFrom = !fechaCreacionDesde || (clientCreationDate && clientCreationDate >= fechaCreacionDesde);
+    const matchesCreationTo = !fechaCreacionHasta || (clientCreationDate && clientCreationDate <= fechaCreacionHasta);
+
+    const clientLastInvoiceDate = c.last_invoice_date ? c.last_invoice_date.substring(0, 10) : '';
+    const matchesLastInvoiceFrom =
+      !ultimaFacturaDesde || (clientLastInvoiceDate && clientLastInvoiceDate >= ultimaFacturaDesde);
+    const matchesLastInvoiceTo =
+      !ultimaFacturaHasta || (clientLastInvoiceDate && clientLastInvoiceDate <= ultimaFacturaHasta);
+
+    return (
+      matchesSearch &&
+      matchesCreationFrom &&
+      matchesCreationTo &&
+      matchesLastInvoiceFrom &&
+      matchesLastInvoiceTo
+    );
+  });
+
+  // Paginación de resultados
+  const paginatedClients = filteredClients.slice(
+    (paginaActual - 1) * elementosPorPagina,
+    paginaActual * elementosPorPagina
   );
 
   const cardBgClass = isDark
@@ -100,36 +169,162 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
-      {/* Top Header Actions */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-96">
-          <FontAwesomeIcon
-            icon={faSearch}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"
-          />
-          <input
-            type="text"
-            placeholder="Buscar por Nombre o NIF/CIF..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-11 pr-4 py-2.5 rounded-2xl border text-sm focus:outline-none focus:border-blue-500 transition-colors ${
-              isDark
-                ? 'bg-slate-900/90 border-slate-800 text-white placeholder-slate-500'
-                : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 shadow-sm'
-            }`}
-          />
+      {/* Panel Superior: Filtros y Acciones */}
+      <div className={`border rounded-3xl p-5 backdrop-blur-xl shadow-xl ${cardBgClass}`}>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faFilter} className="text-blue-500 text-sm" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-blue-500">
+              Filtros y Búsqueda de Clientes
+            </h3>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {hayFiltrosActivos && (
+              <button
+                onClick={handleResetFilters}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                  isDark
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <FontAwesomeIcon icon={faRotateLeft} className="text-xs" />
+                <span>Limpiar Filtros</span>
+              </button>
+            )}
+
+            <button
+              onClick={handleOpenCreateModal}
+              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 transition-transform hover:scale-105 shrink-0"
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              <span>Añadir Cliente</span>
+            </button>
+          </div>
         </div>
 
-        <button
-          onClick={handleOpenCreateModal}
-          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 transition-transform hover:scale-105"
-        >
-          <FontAwesomeIcon icon={faPlus} />
-          <span>Añadir Cliente</span>
-        </button>
+        {/* Formulario de Filtros */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {/* Buscar por texto */}
+          <div className="lg:col-span-1">
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Búsqueda por texto
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faSearch}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="text"
+                placeholder="Nombre, NIF o Email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white placeholder-slate-500'
+                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Fecha Creación Cliente: Desde */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Creación Cliente (Desde)
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faCalendarAlt}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="date"
+                value={fechaCreacionDesde}
+                onChange={(e) => setFechaCreacionDesde(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white'
+                    : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Fecha Creación Cliente: Hasta */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Creación Cliente (Hasta)
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faCalendarAlt}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="date"
+                value={fechaCreacionHasta}
+                onChange={(e) => setFechaCreacionHasta(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white'
+                    : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Fecha Última Factura: Desde */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Última Factura (Desde)
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faCalendarAlt}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="date"
+                value={ultimaFacturaDesde}
+                onChange={(e) => setUltimaFacturaDesde(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white'
+                    : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Fecha Última Factura: Hasta */}
+          <div>
+            <label className={`block text-[11px] font-bold uppercase mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Última Factura (Hasta)
+            </label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faCalendarAlt}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+              />
+              <input
+                type="date"
+                value={ultimaFacturaHasta}
+                onChange={(e) => setUltimaFacturaHasta(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-white'
+                    : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Clients Table Card */}
+      {/* Tabla de Clientes Card */}
       <div className={`border rounded-3xl p-6 backdrop-blur-xl shadow-xl ${cardBgClass}`}>
         <div className="flex items-center gap-3 mb-6">
           <div
@@ -144,7 +339,7 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
               Directorio de Clientes
             </h2>
             <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Total de clientes registrados: {filteredClients.length}
+              Mostrando {filteredClients.length} de {clients.length} clientes registrados
             </p>
           </div>
         </div>
@@ -153,135 +348,169 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
           <div className="py-12 text-center text-blue-500 font-medium">Cargando clientes...</div>
         ) : filteredClients.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-sm">
-            No se encontraron clientes. Haz clic en "Añadir Cliente" para registrar el primero.
+            {hayFiltrosActivos
+              ? 'No se encontraron clientes con los filtros aplicados. Prueba a cambiar el rango de fechas o el texto de búsqueda.'
+              : 'No se encontraron clientes. Haz clic en "Añadir Cliente" para registrar el primero.'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead
-                className={`text-xs uppercase border-b ${
-                  isDark
-                    ? 'text-slate-400 bg-black/40 border-slate-800'
-                    : 'text-slate-500 bg-slate-100 border-slate-200'
-                }`}
-              >
-                <tr>
-                  <th className="py-3.5 px-4">NIF / CIF</th>
-                  <th className="py-3.5 px-4">Nombre / Razón Social</th>
-                  <th className="py-3.5 px-4">Dirección Fiscal</th>
-                  <th className="py-3.5 px-4">Correo Electrónico</th>
-                  <th className="py-3.5 px-4 text-center">Retención IRPF</th>
-                  <th className="py-3.5 px-4 text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody
-                className={`divide-y ${
-                  isDark ? 'divide-slate-800/60 text-slate-300' : 'divide-slate-200 text-slate-700'
-                }`}
-              >
-                {filteredClients.map((client) => (
-                  <tr
-                    key={client.id}
-                    className={`transition-colors ${
-                      isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <td
-                      className={`py-3.5 px-4 font-mono font-semibold ${
-                        isDark ? 'text-blue-300' : 'text-blue-700'
+          <div className="space-y-4">
+            {/* 
+              Gestión de scroll horizontal en tablas:
+              Se utiliza overflow-x-auto en el contenedor envolvente de la tabla para garantizar que en 
+              pantallas estrechas o con múltiples columnas el layout no rompa ni genere desbordamientos 
+              no deseados en el viewport global.
+            */}
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead
+                  className={`text-xs uppercase border-b ${
+                    isDark
+                      ? 'text-slate-400 bg-black/40 border-slate-800'
+                      : 'text-slate-500 bg-slate-100 border-slate-200'
+                  }`}
+                >
+                  <tr>
+                    <th className="py-3.5 px-4">NIF / CIF</th>
+                    <th className="py-3.5 px-4">Nombre / Razón Social</th>
+                    <th className="py-3.5 px-4">Dirección Fiscal</th>
+                    <th className="py-3.5 px-4">Correo Electrónico</th>
+                    <th className="py-3.5 px-4 text-center">Retención IRPF</th>
+                    <th className="py-3.5 px-4 text-center">Fecha Alta</th>
+                    <th className="py-3.5 px-4 text-center">Última Factura</th>
+                    <th className="py-3.5 px-4 text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody
+                  className={`divide-y ${
+                    isDark ? 'divide-slate-800/60 text-slate-300' : 'divide-slate-200 text-slate-700'
+                  }`}
+                >
+                  {paginatedClients.map((client) => (
+                    <tr
+                      key={client.id}
+                      className={`transition-colors ${
+                        isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      {client.nif}
-                    </td>
-                    <td
-                      className={`py-3.5 px-4 font-semibold ${
-                        isDark ? 'text-white' : 'text-slate-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>{client.name}</span>
-                        {client.id === 1 && (
+                      <td
+                        className={`py-3.5 px-4 font-mono font-semibold ${
+                          isDark ? 'text-blue-300' : 'text-blue-700'
+                        }`}
+                      >
+                        {client.nif}
+                      </td>
+                      <td
+                        className={`py-3.5 px-4 font-semibold ${
+                          isDark ? 'text-white' : 'text-slate-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{client.name}</span>
+                          {client.id === 1 && (
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                isDark
+                                  ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                                  : 'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}
+                            >
+                              Por defecto
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td
+                        className={`py-3.5 px-4 text-xs truncate max-w-xs ${
+                          isDark ? 'text-slate-400' : 'text-slate-500'
+                        }`}
+                      >
+                        {client.address || '-'}
+                      </td>
+                      <td
+                        className={`py-3.5 px-4 text-xs ${
+                          isDark ? 'text-slate-400' : 'text-slate-500'
+                        }`}
+                      >
+                        {client.email || '-'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        {client.default_retention_irpf ? (
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 ${
                               isDark
                                 ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
                                 : 'bg-blue-50 text-blue-700 border-blue-200'
                             }`}
                           >
-                            Por defecto
+                            <FontAwesomeIcon icon={faCheckCircle} className="text-[10px]" /> Sí (15%)
                           </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">No</span>
                         )}
-                      </div>
-                    </td>
-                    <td
-                      className={`py-3.5 px-4 text-xs truncate max-w-xs ${
-                        isDark ? 'text-slate-400' : 'text-slate-500'
-                      }`}
-                    >
-                      {client.address || '-'}
-                    </td>
-                    <td
-                      className={`py-3.5 px-4 text-xs ${
-                        isDark ? 'text-slate-400' : 'text-slate-500'
-                      }`}
-                    >
-                      {client.email || '-'}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      {client.default_retention_irpf ? (
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 ${
-                            isDark
-                              ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-                              : 'bg-blue-50 text-blue-700 border-blue-200'
-                          }`}
-                        >
-                          <FontAwesomeIcon icon={faCheckCircle} className="text-[10px]" /> Sí (15%)
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">No</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-center space-x-2">
-                      <button
-                        onClick={() => handleOpenEditModal(client)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          isDark
-                            ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
-                            : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-                        }`}
-                        title="Editar cliente"
-                      >
-                        <FontAwesomeIcon icon={faEdit} />
-                      </button>
-                      {client.id === 1 ? (
+                      </td>
+                      <td className={`py-3.5 px-4 text-center text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {client.created_at ? client.created_at.substring(0, 10) : '-'}
+                      </td>
+                      <td className={`py-3.5 px-4 text-center text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        {client.last_invoice_date ? (
+                          <span className={`px-2 py-0.5 rounded-lg ${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
+                            {client.last_invoice_date.substring(0, 10)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 italic text-[11px]">Sin facturas</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-center space-x-2">
                         <button
-                          disabled
-                          className={`p-2 rounded-lg cursor-not-allowed ${
-                            isDark ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'
-                          }`}
-                          title="El cliente por defecto no se puede eliminar"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleDeleteClient(client.id, client.name)}
+                          onClick={() => handleOpenEditModal(client)}
                           className={`p-2 rounded-lg transition-colors ${
                             isDark
-                              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
-                              : 'bg-rose-50 hover:bg-rose-100 text-rose-600'
+                              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
+                              : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
                           }`}
-                          title="Eliminar cliente"
+                          title="Editar cliente"
                         >
-                          <FontAwesomeIcon icon={faTrash} />
+                          <FontAwesomeIcon icon={faEdit} />
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        {client.id === 1 ? (
+                          <button
+                            disabled
+                            className={`p-2 rounded-lg cursor-not-allowed ${
+                              isDark ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'
+                            }`}
+                            title="El cliente por defecto no se puede eliminar"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleDeleteClient(client.id, client.name)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              isDark
+                                ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
+                                : 'bg-rose-50 hover:bg-rose-100 text-rose-600'
+                            }`}
+                            title="Eliminar cliente"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Componente de Paginación */}
+            <Paginacion
+              paginaActual={paginaActual}
+              totalElementos={filteredClients.length}
+              elementosPorPagina={elementosPorPagina}
+              onCambioPagina={setPaginaActual}
+              onCambioElementosPorPagina={setElementosPorPagina}
+              theme={theme}
+            />
           </div>
         )}
       </div>

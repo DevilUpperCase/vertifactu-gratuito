@@ -15,10 +15,10 @@ export const App: React.FC = () => {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [dbReady, setDbReady] = useState(false);
 
-  // Theme state: dark by default (extra pitch dark) or light
+  // Theme state: light by default
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('app_theme');
-    return saved === 'light' ? 'light' : 'dark';
+    return saved === 'dark' ? 'dark' : 'light';
   });
 
   const toggleTheme = () => {
@@ -129,7 +129,7 @@ export const App: React.FC = () => {
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0055ff] to-cyan-400 flex items-center justify-center animate-bounce text-xl font-bold shadow-lg shadow-blue-500/40 text-white">
           ⚡
         </div>
-        <div className="text-lg font-bold tracking-wide">Cargando Verifactu Gratuito Taratic...</div>
+        <div className="text-lg font-bold tracking-wide">Cargando Verifactu Gratuito - Taratic...</div>
         <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Cargando motor SQLite WASM y sistema de archivos local
         </p>

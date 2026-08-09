@@ -51,16 +51,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div>
           <h1
-            className={`font-bold text-base leading-tight ${
+            className={`font-bold text-sm leading-tight ${
               isDark
                 ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-200 to-white'
                 : 'text-slate-900'
             }`}
           >
-            Verifactu Gratuito
+            Verifactu Gratuito - Taratic
           </h1>
           <p className={`text-xs font-medium ${isDark ? 'text-blue-400/80' : 'text-blue-600'}`}>
-            Taratic • Facturación Local
+            Facturación Local
           </p>
         </div>
       </div>

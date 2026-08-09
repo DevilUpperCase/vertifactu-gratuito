@@ -21,6 +21,7 @@ export interface Client {
   email: string;
   default_retention_irpf: boolean;
   created_at?: string;
+  last_invoice_date?: string | null;
 }
 
 export interface InvoiceLine {

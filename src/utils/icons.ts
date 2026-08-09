@@ -27,6 +27,13 @@ import {
   faEnvelope,
   faSun,
   faMoon,
+  faChevronLeft,
+  faChevronRight,
+  faAngleDoubleLeft,
+  faAngleDoubleRight,
+  faCalendarAlt,
+  faFilter,
+  faRotateLeft,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -56,7 +63,14 @@ library.add(
   faGlobe,
   faEnvelope,
   faSun,
-  faMoon
+  faMoon,
+  faChevronLeft,
+  faChevronRight,
+  faAngleDoubleLeft,
+  faAngleDoubleRight,
+  faCalendarAlt,
+  faFilter,
+  faRotateLeft
 );
 
 export {
@@ -87,4 +101,11 @@ export {
   faEnvelope,
   faSun,
   faMoon,
+  faChevronLeft,
+  faChevronRight,
+  faAngleDoubleLeft,
+  faAngleDoubleRight,
+  faCalendarAlt,
+  faFilter,
+  faRotateLeft,
 };

@@ -16,11 +16,11 @@
   ],
   "nativeBlockList": [],
   "globalVariables": {
-    "TEST_VAR": "Verifactu Gratuito Taratic App"
+    "TEST_VAR": "Verifactu Gratuito - Taratic App"
   },
   "modes": {
     "window": {
-      "title": "Verifactu Gratuito Taratic",
+      "title": "Verifactu Gratuito - Taratic",
       "icon": "/icon.png",
       "width": 1280,
       "height": 850,
@@ -30,7 +30,7 @@
       "alwaysOnTop": false,
       "enableInspector": false,
       "borderless": false,
-      "maximize": false,
+      "maximize": true,
       "hidden": false,
       "resizable": true
     }
