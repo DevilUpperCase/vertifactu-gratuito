@@ -6,7 +6,6 @@ import {
   faUsers,
   faCog,
   faShieldAlt,
-  faGlobe,
   faEnvelope,
 } from '../utils/icons';
 
@@ -14,7 +13,7 @@ interface SidebarProps {
   activeTab: 'dashboard' | 'invoices' | 'clients' | 'settings';
   setActiveTab: (tab: 'dashboard' | 'invoices' | 'clients' | 'settings') => void;
   verifactuEnabled: boolean;
-  onOpenGuide: () => void;
+  onOpenGuide?: () => void;
   theme: 'dark' | 'light';
 }
 
@@ -22,7 +21,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
   verifactuEnabled,
-  onOpenGuide,
   theme,
 }) => {
   const isDark = theme === 'dark';
@@ -127,51 +125,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           />
         </div>
-        <p className={`text-xs mb-3 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
           {verifactuEnabled
             ? 'Modo inmutable activo según Ley Antifraude 11/2021'
             : 'Desactivado. Puedes activarlo en Configuración.'}
         </p>
-        <button
-          onClick={onOpenGuide}
-          className={`w-full text-xs py-2 rounded-lg font-medium border transition-colors flex items-center justify-center gap-2 ${
-            isDark
-              ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border-blue-500/30'
-              : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
-          }`}
-        >
-          <FontAwesomeIcon icon={faShieldAlt} />
-          Guía Verifactu AEAT
-        </button>
       </div>
 
       {/* Footer Info & Taratic Support */}
       <div
-        className={`p-4 text-center border-t text-[11px] space-y-1.5 ${
+        className={`p-4 text-center border-t text-[11px] space-y-3 ${
           isDark ? 'border-zinc-800 text-zinc-400' : 'border-slate-200 text-slate-600'
         }`}
       >
-        <div className="flex items-center justify-center gap-2.5">
+        <div className="flex flex-col gap-2 w-full">
           <a
             href="https://taratic.com"
             target="_blank"
             rel="noreferrer"
-            className={`hover:underline transition-colors flex items-center gap-1.5 font-semibold ${
-              isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
-            }`}
+            className="w-full px-3 py-1.5 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-2 border bg-white hover:bg-blue-50 text-blue-600 border-slate-200 shadow-xs"
           >
-            <img src="/taratic.webp" alt="Taratic Logo" className="w-4 h-4 rounded-full object-cover shrink-0" />
-            <span>taratic.com</span>
+            <img src="/taratic.webp" alt="Taratic Logo" className="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
+            <span className="truncate">taratic.com</span>
           </a>
-          <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>•</span>
           <a
             href="mailto:contacto@taratic.com"
-            className={`hover:underline transition-colors flex items-center gap-1.5 ${
-              isDark ? 'text-zinc-400 hover:text-blue-300' : 'text-slate-600 hover:text-blue-800'
-            }`}
+            className="w-full px-3 py-1.5 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-2 border bg-white hover:bg-blue-50 text-blue-600 border-slate-200 shadow-xs"
           >
-            <FontAwesomeIcon icon={faEnvelope} className="text-[10px]" />
-            <span>contacto@taratic.com</span>
+            <FontAwesomeIcon icon={faEnvelope} className="text-xs text-blue-600 shrink-0" />
+            <span className="truncate">contacto@taratic.com</span>
           </a>
         </div>
         <div className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>

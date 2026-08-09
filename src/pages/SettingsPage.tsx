@@ -262,7 +262,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         {/* Section 2: Verifactu Toggle & Certificate Options */}
         <div className={`border rounded-3xl p-6 backdrop-blur-xl shadow-xl space-y-6 ${cardBgClass}`}>
           <div
-            className={`flex items-center justify-between border-b pb-4 ${
+            className={`flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 ${
               isDark ? 'border-slate-800' : 'border-slate-200'
             }`}
           >
@@ -284,31 +284,47 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               </div>
             </div>
 
-            {/* Verifactu Switch Toggle */}
-            <div className="flex items-center gap-3">
-              <span className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                {settings.verifactu_enabled ? 'Modo Inmutable (ACTIVADO)' : 'Modo Estándar (DESACTIVADO)'}
-              </span>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Botón Guía Verifactu AEAT */}
               <button
                 type="button"
-                onClick={() =>
-                  setSettingsData({
-                    ...settings,
-                    verifactu_enabled: !settings.verifactu_enabled,
-                  })
-                }
-                className={`w-14 h-7 rounded-full p-1 transition-colors duration-200 ease-in-out ${
-                  settings.verifactu_enabled
-                    ? 'bg-gradient-to-r from-[#0055ff] to-blue-600 shadow-lg shadow-blue-500/30'
-                    : isDark ? 'bg-slate-800' : 'bg-slate-300'
+                onClick={onOpenGuide}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 shadow-xs cursor-pointer ${
+                  isDark
+                    ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border-blue-500/40'
+                    : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
                 }`}
               >
-                <div
-                  className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
-                    settings.verifactu_enabled ? 'translate-x-7' : 'translate-x-0'
-                  }`}
-                />
+                <FontAwesomeIcon icon={faShieldAlt} />
+                <span>Guía Verifactu AEAT</span>
               </button>
+
+              {/* Verifactu Switch Toggle */}
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  {settings.verifactu_enabled ? 'Modo Inmutable (ACTIVADO)' : 'Modo Estándar (DESACTIVADO)'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettingsData({
+                      ...settings,
+                      verifactu_enabled: !settings.verifactu_enabled,
+                    })
+                  }
+                  className={`w-14 h-7 rounded-full p-1 transition-colors duration-200 ease-in-out ${
+                    settings.verifactu_enabled
+                      ? 'bg-gradient-to-r from-[#0055ff] to-blue-600 shadow-lg shadow-blue-500/30'
+                      : isDark ? 'bg-slate-800' : 'bg-slate-300'
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
+                      settings.verifactu_enabled ? 'translate-x-7' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -422,29 +438,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               Verifactu Gratuito es un software gratuito, completamente local y de código abierto para pymes y autónomos de España.
             </p>
           </div>
-          <div className="flex items-center gap-4 text-xs font-semibold shrink-0">
+          <div className="flex items-center gap-3 text-xs font-bold shrink-0">
             <a
               href="https://taratic.com"
               target="_blank"
               rel="noreferrer"
-              className={`px-4 py-2 rounded-xl border transition-all flex items-center gap-2 ${
-                isDark
-                  ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border-blue-500/40'
-                  : 'bg-white/20 hover:bg-white/30 text-white border-white/40'
-              }`}
+              className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-black border border-slate-300 shadow-sm transition-all flex items-center gap-2 font-bold"
             >
               <img src="/taratic.webp" alt="Taratic" className="w-4 h-4 rounded-full object-cover shrink-0" />
               <span>taratic.com</span>
             </a>
             <a
               href="mailto:contacto@taratic.com"
-              className={`px-4 py-2 rounded-xl border transition-all flex items-center gap-2 ${
-                isDark
-                  ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border-blue-500/40'
-                  : 'bg-white/20 hover:bg-white/30 text-white border-white/40'
-              }`}
+              className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-black border border-slate-300 shadow-sm transition-all flex items-center gap-2 font-bold"
             >
-              <FontAwesomeIcon icon={faEnvelope} />
+              <FontAwesomeIcon icon={faEnvelope} className="text-black" />
               <span>contacto@taratic.com</span>
             </a>
           </div>

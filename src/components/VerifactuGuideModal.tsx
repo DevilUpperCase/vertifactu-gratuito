@@ -174,26 +174,22 @@ export const VerifactuGuideModal: React.FC<VerifactuGuideModalProps> = ({
             isDark ? 'bg-[#131314] border-zinc-800' : 'bg-slate-50 border-slate-200'
           }`}
         >
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-3 text-xs bg-white text-black border border-slate-300 px-3.5 py-2 rounded-2xl shadow-sm font-bold">
             <a
               href="https://taratic.com"
               target="_blank"
               rel="noreferrer"
-              className={`font-semibold transition-colors flex items-center gap-1.5 hover:underline ${
-                isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
-              }`}
+              className="font-bold text-black hover:text-slate-700 transition-colors flex items-center gap-1.5 hover:underline"
             >
               <img src="/taratic.webp" alt="Taratic Logo" className="w-4 h-4 rounded-full object-cover shrink-0" />
               <span>taratic.com</span>
             </a>
-            <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>•</span>
+            <span className="text-slate-400">•</span>
             <a
               href="mailto:contacto@taratic.com"
-              className={`transition-colors flex items-center gap-1.5 hover:underline ${
-                isDark ? 'text-zinc-400 hover:text-blue-300' : 'text-slate-600 hover:text-blue-800'
-              }`}
+              className="font-bold text-black hover:text-slate-700 transition-colors flex items-center gap-1.5 hover:underline"
             >
-              <FontAwesomeIcon icon={faEnvelope} className="text-[10px]" />
+              <FontAwesomeIcon icon={faEnvelope} className="text-[10px] text-black" />
               <span>contacto@taratic.com</span>
             </a>
           </div>
