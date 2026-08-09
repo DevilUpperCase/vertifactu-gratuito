@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "neu:run": "start bin/neutralino-win_x64.exe --load-dir-res --path=. --export-auth-info",
-    "neu:build": "neu build"
+    "neu:build": "neu build --release"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
