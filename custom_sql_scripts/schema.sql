@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS Invoices (
     client_id INTEGER NOT NULL,
     issue_date TEXT NOT NULL,
     due_date TEXT DEFAULT '',
-    status TEXT CHECK(status IN ('Borrador', 'Pendiente', 'Pagada', 'Anulada')) DEFAULT 'Borrador',
+    status TEXT CHECK(status IN ('Borrador', 'Pendiente', 'Pagada', 'Anulada')) DEFAULT 'Pagada',
     verifactu_status TEXT CHECK(verifactu_status IN ('N/A', 'Pendiente', 'Firmado', 'Enviado')) DEFAULT 'N/A',
     total_base INTEGER NOT NULL DEFAULT 0,
     total_igic INTEGER NOT NULL DEFAULT 0,

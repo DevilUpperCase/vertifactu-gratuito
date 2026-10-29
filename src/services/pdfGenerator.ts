@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Invoice, Settings } from '../types';
 import { calculateInvoiceSummary, calculateLineTotals, formatCurrency } from '../utils/currency';
+import { formatearFechaEspanola } from '../utils/fechas';
 
 export interface PdfOptions {
   showExcludingIgicColumn: boolean;
@@ -77,14 +78,14 @@ export function generateInvoicePdf(
   doc.setTextColor(lightTextColor);
   doc.text(`Fecha de Emisión:`, 14, 64);
   doc.setTextColor(darkTextColor);
-  doc.text(invoice.issue_date, 50, 64);
+  doc.text(formatearFechaEspanola(invoice.issue_date), 50, 64);
 
   if (invoice.due_date) {
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(lightTextColor);
     doc.text(`Fecha Vencimiento:`, 14, 70);
     doc.setTextColor(darkTextColor);
-    doc.text(invoice.due_date, 50, 70);
+    doc.text(formatearFechaEspanola(invoice.due_date), 50, 70);
   }
 
   // Cuadro del Cliente (Derecha)
@@ -208,15 +209,7 @@ export function generateInvoicePdf(
     currentY += 5;
   }
 
-  if (invoice.total_irpf > 0) {
-    doc.setTextColor(lightTextColor);
-    doc.text('Retención IRPF:', startXTotals, currentY);
-    doc.setTextColor(220, 38, 38);
-    doc.text(`-${formatCurrency(invoice.total_irpf)}`, 196, currentY, { align: 'right' });
-    currentY += 5;
-  }
-
-  // Recuadro del Total General
+  // Recuadro del Total General (Base + IGIC)
   currentY += 2;
   doc.setFillColor(238, 242, 255);
   doc.roundedRect(startXTotals - 2, currentY - 4, 78, 10, 2, 2, 'F');

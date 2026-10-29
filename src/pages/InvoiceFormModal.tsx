@@ -8,10 +8,27 @@ import {
   faCheckCircle,
   faLock,
   faExclamationTriangle,
+  faShieldAlt,
+  faInfoCircle,
+  faRotateLeft,
+  faFilePdf,
 } from '../utils/icons';
 import { Client, Invoice, InvoiceLine, Settings } from '../types';
-import { getClients, getSettings, generateNextInvoiceNumber, saveInvoice } from '../services/database';
+import {
+  getClients,
+  getSettings,
+  generateNextInvoiceNumber,
+  saveInvoice,
+  saveClient,
+  getRecentConcepts,
+  ConceptoRecurrente,
+  addAuditLogEntry,
+} from '../services/database';
+import { processVerifactuInvoice } from '../services/verifactu';
+import { generateInvoicePdf } from '../services/pdfGenerator';
 import { calculateInvoiceSummary, calculateLineTotals, centsToEuroNumber, formatCurrency, parseEuroToCents } from '../utils/currency';
+import { parsearFechaEspanolaAIso } from '../utils/fechas';
+import { CampoFechaEspanola } from '../components/CampoFechaEspanola';
 
 interface InvoiceFormModalProps {
   isOpen: boolean;
@@ -37,9 +54,23 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   const [selectedClientId, setSelectedClientId] = useState<number | ''>('');
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
-  const [status, setStatus] = useState<Invoice['status']>('Borrador');
+  const [status, setStatus] = useState<Invoice['status']>('Pagada');
   const [irpfPercent, setIrpfPercent] = useState<number>(0);
+  const [autoDownloadPdf, setAutoDownloadPdf] = useState<boolean>(true);
 
+  // Estados para creación rápida de cliente
+  const [isCreatingClient, setIsCreatingClient] = useState(false);
+  const [newClientNif, setNewClientNif] = useState('');
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientAddress, setNewClientAddress] = useState('');
+  const [newClientEmail, setNewClientEmail] = useState('');
+  const [newClientIrpf, setNewClientIrpf] = useState(false);
+  const [savingClient, setSavingClient] = useState(false);
+  const [clientError, setClientError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingMsg, setSubmittingMsg] = useState('');
+
+  const [availableConcepts, setAvailableConcepts] = useState<ConceptoRecurrente[]>([]);
   const [lines, setLines] = useState<
     Array<{
       concept: string;
@@ -53,10 +84,14 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
   useEffect(() => {
     async function initForm() {
-      const cls = await getClients();
-      const stts = await getSettings();
+      const [cls, stts, recentConcepts] = await Promise.all([
+        getClients(),
+        getSettings(),
+        getRecentConcepts(),
+      ]);
       setClients(cls);
       setSettings(stts);
+      setAvailableConcepts(recentConcepts);
 
       if (initialInvoice) {
         setInvoiceNumber(initialInvoice.invoice_number);
@@ -85,6 +120,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
         setSelectedClientId(defaultClientId);
         setIrpfPercent(hasClientIrpf ? 15 : 0);
+        setStatus('Pagada');
         setLines([{ concept: '', quantity: 1, price_unit: 0, igic_rate: defaultIgic }]);
 
         const nextNum = await generateNextInvoiceNumber();
@@ -102,13 +138,52 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   const isReadOnlyDueToVerifactu =
     Boolean(settings?.verifactu_enabled) &&
     Boolean(initialInvoice?.id) &&
-    (initialInvoice?.status === 'Pendiente' || initialInvoice?.status === 'Pagada');
+    initialInvoice?.verifactu_status === 'Enviado';
 
   const handleClientChange = (clientId: number) => {
     setSelectedClientId(clientId);
     const clientObj = clients.find((c) => c.id === clientId);
     if (clientObj) {
       setIrpfPercent(clientObj.default_retention_irpf ? 15 : 0);
+    }
+  };
+
+  const handleSaveNewClient = async () => {
+    if (!newClientNif.trim() || !newClientName.trim()) {
+      setClientError('El NIF/CIF y el Nombre o Razón Social son campos obligatorios.');
+      return;
+    }
+    try {
+      setSavingClient(true);
+      setClientError('');
+      const newId = await saveClient({
+        nif: newClientNif.trim().toUpperCase(),
+        name: newClientName.trim(),
+        address: newClientAddress.trim(),
+        email: newClientEmail.trim(),
+        default_retention_irpf: newClientIrpf,
+      });
+
+      // Recargar lista actualizada de clientes desde la base de datos
+      const updatedClients = await getClients();
+      setClients(updatedClients);
+
+      // Asignar inmediatamente el nuevo cliente a la factura actual
+      setSelectedClientId(newId);
+      setIrpfPercent(newClientIrpf ? 15 : 0);
+
+      // Limpiar formulario y cerrar panel rápido
+      setNewClientNif('');
+      setNewClientName('');
+      setNewClientAddress('');
+      setNewClientEmail('');
+      setNewClientIrpf(false);
+      setIsCreatingClient(false);
+    } catch (err: any) {
+      console.error('Error al crear cliente rápido:', err);
+      setClientError(err?.message || 'Error al guardar el nuevo cliente.');
+    } finally {
+      setSavingClient(false);
     }
   };
 
@@ -122,6 +197,25 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     setLines(lines.filter((_, i) => i !== index));
   };
 
+  const handleApplyConcept = (index: number, conceptName: string) => {
+    if (!conceptName) return;
+    const match = availableConcepts.find(
+      (c) => c.concept.toLowerCase() === conceptName.toLowerCase()
+    );
+    if (match) {
+      const newLines = [...lines];
+      newLines[index] = {
+        ...newLines[index],
+        concept: match.concept,
+        price_unit: centsToEuroNumber(match.unit_price),
+        igic_rate: match.igic_rate,
+      };
+      setLines(newLines);
+    } else {
+      handleLineChange(index, 'concept', conceptName);
+    }
+  };
+
   const handleLineChange = (
     index: number,
     field: 'concept' | 'quantity' | 'price_unit' | 'igic_rate',
@@ -129,6 +223,18 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   ) => {
     const newLines = [...lines];
     newLines[index] = { ...newLines[index], [field]: value };
+
+    // Si el usuario escribe o autocompleta un concepto conocido y el precio actual es 0, auto-rellenar precio e IGIC
+    if (field === 'concept' && typeof value === 'string') {
+      const match = availableConcepts.find(
+        (c) => c.concept.trim().toLowerCase() === value.trim().toLowerCase()
+      );
+      if (match && newLines[index].price_unit === 0) {
+        newLines[index].price_unit = centsToEuroNumber(match.unit_price);
+        newLines[index].igic_rate = match.igic_rate;
+      }
+    }
+
     setLines(newLines);
   };
 
@@ -147,7 +253,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
   const summary = calculateInvoiceSummary(computedInvoiceLines, irpfPercent);
 
-  const handleSubmit = async (e: React.FormEvent, targetStatus?: Invoice['status']) => {
+  const handleSubmit = async (e: React.FormEvent, sendToVerifactu: boolean = false) => {
     e.preventDefault();
     if (!invoiceNumber.trim()) {
       alert('Por favor ingresa un número de factura');
@@ -162,31 +268,127 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       return;
     }
 
-    const finalStatus = targetStatus || status;
-
-    const invoiceData: Omit<Invoice, 'id'> & { id?: number } = {
-      id: initialInvoice?.id,
-      invoice_number: invoiceNumber,
-      client_id: Number(selectedClientId),
-      issue_date: issueDate,
-      due_date: dueDate,
-      status: finalStatus,
-      verifactu_status: settings?.verifactu_enabled ? 'Pendiente' : 'N/A',
-      total_base: summary.totalBaseCents,
-      total_igic: summary.totalIgicCents,
-      total_irpf: summary.totalIrpfCents,
-      grand_total: summary.grandTotalCents,
-      is_rectification: initialInvoice?.is_rectification || false,
-      original_invoice_id: initialInvoice?.original_invoice_id || null,
-    };
-
     try {
-      await saveInvoice(invoiceData, computedInvoiceLines);
+      setIsSubmitting(true);
+      setSubmittingMsg(
+        sendToVerifactu
+          ? autoDownloadPdf
+            ? 'Firmando, remitiendo a Verifactu y descargando PDF...'
+            : 'Firmando y remitiendo a Verifactu...'
+          : autoDownloadPdf
+          ? 'Guardando factura y descargando PDF...'
+          : 'Guardando factura...'
+      );
+
+      // Si se selecciona "Guardar y enviar a Verifactu", el estado de Verifactu pasa a "Enviado".
+      // Si se pulsa "Guardar factura", se mantiene su estado previo o "Pendiente"/"N/A".
+      const targetVerifactuStatus = sendToVerifactu
+        ? 'Enviado'
+        : initialInvoice?.verifactu_status || (settings?.verifactu_enabled ? 'Pendiente' : 'N/A');
+
+      const finalIssueDate =
+        parsearFechaEspanolaAIso(issueDate) || new Date().toISOString().split('T')[0];
+      const finalDueDate = parsearFechaEspanolaAIso(dueDate) || finalIssueDate;
+
+      const invoiceData: Omit<Invoice, 'id'> & { id?: number } = {
+        id: initialInvoice?.id,
+        invoice_number: invoiceNumber,
+        client_id: Number(selectedClientId),
+        issue_date: finalIssueDate,
+        due_date: finalDueDate,
+        status: status,
+        verifactu_status: targetVerifactuStatus,
+        total_base: summary.totalBaseCents,
+        total_igic: summary.totalIgicCents,
+        total_irpf: summary.totalIrpfCents,
+        grand_total: summary.grandTotalCents,
+        is_rectification: initialInvoice?.is_rectification || false,
+        original_invoice_id: initialInvoice?.original_invoice_id || null,
+      };
+
+      const savedInvoiceId = await saveInvoice(invoiceData, computedInvoiceLines);
+
+      // Cargar configuración activa y datos del cliente para Verifactu y PDF
+      const activeSettings = settings || (await getSettings());
+      const clientObj =
+        clients.find((c) => c.id === Number(selectedClientId)) ||
+        (await getClients()).find((c) => c.id === Number(selectedClientId));
+
+      const fullInvoice: Invoice = {
+        ...invoiceData,
+        id: savedInvoiceId,
+        client_name: clientObj?.name || '',
+        client_nif: clientObj?.nif || '',
+        client_address: clientObj?.address || '',
+        lines: computedInvoiceLines as InvoiceLine[],
+      };
+
+      let qrCodeDataUrl: string | undefined = undefined;
+      let xmlHash: string | undefined = undefined;
+
+      // Si se solicitó enviar a Verifactu o si Verifactu está activado globalmente
+      if (activeSettings && (sendToVerifactu || activeSettings.verifactu_enabled)) {
+        let certBinary: ArrayBuffer | undefined = undefined;
+        if (activeSettings.cert_path && window.Neutralino?.filesystem) {
+          try {
+            certBinary = await window.Neutralino.filesystem.readBinaryFile(activeSettings.cert_path);
+          } catch (e) {
+            console.warn('Certificado no encontrado en la ruta especificada:', e);
+          }
+        }
+
+        try {
+          const vResult = await processVerifactuInvoice(fullInvoice, activeSettings, certBinary);
+          qrCodeDataUrl = vResult.qrCodeDataUrl;
+          xmlHash = vResult.xmlHash;
+
+          if (sendToVerifactu) {
+            await addAuditLogEntry({
+              action: 'SEND_VERIFACTU',
+              invoice_id: savedInvoiceId,
+              timestamp: new Date().toISOString(),
+              xml_hash: vResult.xmlHash,
+            });
+          }
+        } catch (vErr) {
+          console.error('Error al procesar huella Verifactu:', vErr);
+        }
+      }
+
+      // Descargar directamente el PDF de la factura si la opción está activada
+      if (autoDownloadPdf) {
+        const fallbackSettings: Settings = activeSettings || {
+          id: 1,
+          issuer_nif: '',
+          issuer_name: 'Empresa Emisora',
+          issuer_address: '',
+          issuer_iban: '',
+          default_igic_rate: 7,
+          verifactu_enabled: false,
+          cert_path: '',
+        };
+
+        try {
+          const pdfDoc = generateInvoicePdf(fullInvoice, fallbackSettings, {
+            showExcludingIgicColumn: false,
+            qrCodeDataUrl,
+            xmlHash,
+          });
+          const sanitizedNum = (invoiceNumber || 'factura').trim().replace(/[/\\?%*:|"<>]/g, '_');
+          pdfDoc.save(`Factura_${sanitizedNum}.pdf`);
+        } catch (pdfErr) {
+          console.error('Error al generar y descargar el PDF de la factura:', pdfErr);
+        }
+      }
+
       onInvoiceSaved();
       onClose();
     } catch (err) {
       console.error('Error al guardar la factura:', err);
       alert('Error guardando la factura');
+    } finally {
+      setIsSubmitting(false);
+      setSubmittingMsg('');
     }
   };
 
@@ -228,7 +430,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
               )}
             </h2>
             <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-blue-100'}`}>
-              Desglose automático de Base Imponible, IGIC/IVA e IRPF
+              Desglose de Base Imponible e IGIC/IVA para el cliente, con control fiscal de IRPF para el operador
             </p>
           </div>
           <button
@@ -268,26 +470,21 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 className={`${inputClass} font-mono font-bold`}
               />
             </div>
-            <div>
-              <label className={labelClass}>Fecha de Emisión</label>
-              <input
-                type="date"
-                disabled={isReadOnlyDueToVerifactu}
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Fecha Vencimiento</label>
-              <input
-                type="date"
-                disabled={isReadOnlyDueToVerifactu}
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className={inputClass}
-              />
-            </div>
+            <CampoFechaEspanola
+              label="Fecha de Emisión"
+              value={issueDate}
+              onChange={(iso) => setIssueDate(iso)}
+              disabled={isReadOnlyDueToVerifactu}
+              theme={theme}
+              required
+            />
+            <CampoFechaEspanola
+              label="Fecha Vencimiento"
+              value={dueDate}
+              onChange={(iso) => setDueDate(iso)}
+              disabled={isReadOnlyDueToVerifactu}
+              theme={theme}
+            />
           </div>
 
           <div
@@ -297,12 +494,158 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           >
             <div className="flex items-center justify-between">
               <label className={labelClass}>Seleccionar Cliente *</label>
-              {selectedClientObj && (
-                <span className={`text-xs font-mono font-semibold ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
-                  NIF: {selectedClientObj.nif}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {selectedClientObj && (
+                  <span className={`text-xs font-mono font-semibold ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
+                    NIF: {selectedClientObj.nif}
+                  </span>
+                )}
+                {!isReadOnlyDueToVerifactu && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCreatingClient((prev) => !prev);
+                      setClientError('');
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border cursor-pointer ${
+                      isCreatingClient
+                        ? isDark
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
+                          : 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
+                        : isDark
+                        ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border-blue-500/40'
+                        : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={isCreatingClient ? faTimes : faPlus} className="text-[10px]" />
+                    <span>{isCreatingClient ? 'Cerrar' : '+ Nuevo Cliente'}</span>
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Formulario Rápido para Crear Cliente */}
+            {isCreatingClient && (
+              <div
+                className={`p-4 rounded-2xl border transition-all space-y-3 animate-fade-in ${
+                  isDark
+                    ? 'bg-zinc-950 border-blue-500/40 shadow-xl'
+                    : 'bg-white border-blue-300 shadow-md'
+                }`}
+              >
+                <div className="flex items-center justify-between pb-1 border-b border-dashed border-zinc-700/40">
+                  <span className={`text-xs font-bold flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                    <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
+                    Registrar y Asignar Nuevo Cliente
+                  </span>
+                  <span className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                    Se guardará en la base de datos y quedará asignado a la factura
+                  </span>
+                </div>
+
+                {clientError && (
+                  <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-rose-400 shrink-0" />
+                    <span>{clientError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold uppercase mb-1 text-slate-400">
+                      NIF / CIF *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. B35123456"
+                      value={newClientNif}
+                      onChange={(e) => setNewClientNif(e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold uppercase mb-1 text-slate-400">
+                      Nombre o Razón Social *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. Comercial Canaria S.L."
+                      value={newClientName}
+                      onChange={(e) => setNewClientName(e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold uppercase mb-1 text-slate-400">
+                      Dirección Fiscal
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. Calle Mayor 12, Las Palmas"
+                      value={newClientAddress}
+                      onChange={(e) => setNewClientAddress(e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold uppercase mb-1 text-slate-400">
+                      Email de Contacto
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Ej. facturas@empresa.com"
+                      value={newClientEmail}
+                      onChange={(e) => setNewClientEmail(e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={newClientIrpf}
+                      onChange={(e) => setNewClientIrpf(e.target.checked)}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 rounded-sm"
+                    />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>
+                      Aplicar retención IRPF por defecto (15%)
+                    </span>
+                  </label>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingClient(false)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
+                        isDark
+                          ? 'border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                          : 'border-slate-300 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      }`}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={savingClient}
+                      onClick={handleSaveNewClient}
+                      className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
+                        savingClient ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+                      } ${
+                        isDark
+                          ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-950/60'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
+                      }`}
+                    >
+                      <FontAwesomeIcon icon={faSave} />
+                      <span>{savingClient ? 'Guardando...' : 'Guardar y Asignar Cliente'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <select
               disabled={isReadOnlyDueToVerifactu}
               value={selectedClientId}
@@ -353,11 +696,37 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                   }`}
                 >
                   <div className="md:col-span-4">
-                    <label className={`block text-[11px] mb-1 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                      Concepto / Servicio
-                    </label>
+                    <div className="flex items-center justify-between mb-1 gap-2">
+                      <label className={`block text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                        Concepto / Servicio
+                      </label>
+                      {availableConcepts.length > 0 && !isReadOnlyDueToVerifactu && (
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              handleApplyConcept(idx, e.target.value);
+                            }
+                          }}
+                          className={`text-[10px] py-0.5 px-1.5 rounded-lg border transition-colors cursor-pointer max-w-[170px] truncate ${
+                            isDark
+                              ? 'bg-zinc-800 border-zinc-700 text-blue-400 hover:text-blue-300'
+                              : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                          }`}
+                          title="Reutilizar concepto guardado de facturas previas"
+                        >
+                          <option value="">↺ Reutilizar...</option>
+                          {availableConcepts.map((c, i) => (
+                            <option key={i} value={c.concept}>
+                              {c.concept} ({centsToEuroNumber(c.unit_price).toFixed(2)}€ | {c.igic_rate}%)
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
                     <input
                       type="text"
+                      list="concept-suggestions"
                       disabled={isReadOnlyDueToVerifactu}
                       placeholder="Descripción del concepto"
                       value={line.concept}
@@ -435,37 +804,100 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 </div>
               ))}
             </div>
+
+            {/* Sugerencias de conceptos reutilizados para autocompletado en el input */}
+            <datalist id="concept-suggestions">
+              {availableConcepts.map((c, i) => (
+                <option key={i} value={c.concept}>
+                  {centsToEuroNumber(c.unit_price).toFixed(2)} € (IGIC {c.igic_rate}%)
+                </option>
+              ))}
+            </datalist>
           </div>
 
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t ${isDark ? 'border-zinc-800' : 'border-slate-200'}`}>
+            {/* Panel Exclusivo del Operador: Régimen Fiscal IRPF */}
             <div
               className={`p-4 rounded-2xl border space-y-3 ${
-                isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                isDark ? 'bg-zinc-900/70 border-amber-500/20' : 'bg-amber-50/40 border-amber-200'
               }`}
             >
-              <label className={labelClass}>Retención IRPF a Cuenta</label>
-              <select
-                disabled={isReadOnlyDueToVerifactu}
-                value={irpfPercent}
-                onChange={(e) => setIrpfPercent(parseFloat(e.target.value) || 0)}
-                className={inputClass}
+              <div className="flex items-center justify-between pb-1 border-b border-amber-500/20">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-500">
+                  <FontAwesomeIcon icon={faShieldAlt} className="text-xs" />
+                  <span>Panel Exclusivo Operador</span>
+                </div>
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                    isDark
+                      ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                      : 'bg-amber-100 text-amber-800 border-amber-300'
+                  }`}
+                >
+                  Uso Interno
+                </span>
+              </div>
+
+              <div>
+                <label className={labelClass}>Retención IRPF a Cuenta (Emisor)</label>
+                <select
+                  disabled={isReadOnlyDueToVerifactu}
+                  value={irpfPercent}
+                  onChange={(e) => setIrpfPercent(parseFloat(e.target.value) || 0)}
+                  className={inputClass}
+                >
+                  <option value="0">Sin Retención IRPF (0%)</option>
+                  <option value="7">7% Retención IRPF (Nuevos Autónomos)</option>
+                  <option value="15">15% Retención IRPF (Profesionales Estándar)</option>
+                </select>
+              </div>
+
+              <div
+                className={`p-2.5 rounded-xl text-xs flex items-start gap-2 ${
+                  isDark ? 'bg-zinc-950/60 text-zinc-400' : 'bg-white/80 text-slate-600 border border-slate-200'
+                }`}
               >
-                <option value="0">Sin Retención IRPF (0%)</option>
-                <option value="7">7% Retención IRPF (Nuevos Autónomos)</option>
-                <option value="15">15% Retención IRPF (Profesionales Estándar)</option>
-              </select>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                La retención IRPF se resta del importe total sobre la Base Imponible.
-              </p>
+                <FontAwesomeIcon icon={faInfoCircle} className="text-amber-500 text-xs mt-0.5 shrink-0" />
+                <span>
+                  El cliente solo abona Base + IGIC/IVA. Esta sección es exclusiva para el control contable y fiscal del operador.
+                </span>
+              </div>
+
+              {summary.totalIrpfCents > 0 && (
+                <div
+                  className={`p-3 rounded-xl border space-y-1.5 text-xs ${
+                    isDark
+                      ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300'
+                      : 'bg-white border-slate-200 text-slate-700'
+                  }`}
+                >
+                  <div className="flex justify-between">
+                    <span className="text-rose-500 font-medium">Retención IRPF ({irpfPercent}%):</span>
+                    <span className="font-semibold text-rose-500">-{formatCurrency(summary.totalIrpfCents)}</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-zinc-700/40 font-medium">
+                    <span>Rendimiento neto estimado operador:</span>
+                    <span className={isDark ? 'text-emerald-400' : 'text-emerald-700'}>
+                      {formatCurrency(summary.operatorNetCents)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
+            {/* Totales Factura (Cliente) */}
             <div
-              className={`p-4 rounded-2xl border space-y-2 text-sm ${
+              className={`p-4 rounded-2xl border space-y-2.5 text-sm ${
                 isDark
                   ? 'bg-blue-950/30 border-blue-500/30'
                   : 'bg-blue-50/80 border-blue-200 text-slate-900'
               }`}
             >
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-blue-500 pb-1 border-b border-blue-500/20">
+                <FontAwesomeIcon icon={faCheckCircle} className="text-xs" />
+                <span>Totales Factura (Cliente)</span>
+              </div>
+
               <div className={`flex justify-between ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
                 <span>Base Imponible Total:</span>
                 <span className="font-semibold">{formatCurrency(summary.totalBaseCents)}</span>
@@ -481,16 +913,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                   <span>{formatCurrency(b.igicCents)}</span>
                 </div>
               ))}
-              {summary.totalIrpfCents > 0 && (
-                <div
-                  className={`flex justify-between text-xs ${
-                    isDark ? 'text-rose-400' : 'text-rose-700 font-medium'
-                  }`}
-                >
-                  <span>Retención IRPF (-{irpfPercent}%):</span>
-                  <span>-{formatCurrency(summary.totalIrpfCents)}</span>
-                </div>
-              )}
               <div
                 className={`pt-3 border-t flex justify-between items-center text-lg font-extrabold ${
                   isDark
@@ -498,8 +920,13 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                     : 'border-blue-200 text-slate-900'
                 }`}
               >
-                <span>TOTAL FACTURA:</span>
-                <span className={isDark ? 'text-blue-400' : 'text-blue-700 font-extrabold'}>
+                <div>
+                  <span className="block">TOTAL FACTURA:</span>
+                  <span className={`block text-[11px] font-normal ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    Base + IGIC/IVA a pagar por el cliente
+                  </span>
+                </div>
+                <span className={isDark ? 'text-blue-400' : 'text-blue-700 font-extrabold text-xl'}>
                   {formatCurrency(summary.grandTotalCents)}
                 </span>
               </div>
@@ -512,21 +939,45 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
             isDark ? 'bg-[#131314] border-zinc-800' : 'bg-slate-50 border-slate-200'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <label className={`text-xs font-semibold uppercase ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Estado:
-            </label>
-            <select
-              disabled={isReadOnlyDueToVerifactu}
-              value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
-              className={inputClass}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className={`text-xs font-semibold uppercase ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                Estado:
+              </label>
+              <select
+                disabled={isReadOnlyDueToVerifactu}
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                className={inputClass}
+              >
+                <option value="Pagada">Pagada (Por defecto)</option>
+                <option value="Pendiente">Pendiente de Pago</option>
+                <option value="Borrador">Borrador</option>
+                <option value="Anulada">Anulada</option>
+              </select>
+            </div>
+
+            <label
+              className={`flex items-center gap-2 cursor-pointer text-xs font-semibold select-none px-3 py-2 rounded-xl border transition-all ${
+                autoDownloadPdf
+                  ? isDark
+                    ? 'bg-blue-500/10 border-blue-500/30 text-blue-300'
+                    : 'bg-blue-50 border-blue-200 text-blue-700 shadow-xs'
+                  : isDark
+                  ? 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-zinc-300'
+                  : 'bg-slate-100 border-slate-200 text-slate-500 hover:text-slate-700'
+              }`}
+              title="Descargar automáticamente el archivo PDF de la factura al guardar o emitir"
             >
-              <option value="Borrador">Borrador</option>
-              <option value="Pendiente">Pendiente de Pago</option>
-              <option value="Pagada">Pagada</option>
-              <option value="Anulada">Anulada</option>
-            </select>
+              <input
+                type="checkbox"
+                checked={autoDownloadPdf}
+                onChange={(e) => setAutoDownloadPdf(e.target.checked)}
+                className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+              />
+              <FontAwesomeIcon icon={faFilePdf} className={autoDownloadPdf ? 'text-blue-400' : 'text-zinc-400'} />
+              <span>Descargar PDF directamente</span>
+            </label>
           </div>
 
           <div className="flex items-center gap-3">
@@ -545,23 +996,51 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
               <>
                 <button
                   type="button"
-                  onClick={(e) => handleSubmit(e, 'Borrador')}
-                  className={`px-4 py-2.5 rounded-xl border text-sm font-semibold flex items-center gap-2 ${
+                  disabled={isSubmitting}
+                  onClick={(e) => handleSubmit(e, false)}
+                  className={`px-4 py-2.5 rounded-xl border text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'
+                  } ${
                     isDark
                       ? 'bg-zinc-800 hover:bg-zinc-700 text-blue-300 border-blue-500/30'
                       : 'bg-white hover:bg-slate-100 text-blue-700 border-blue-300 shadow-sm'
                   }`}
+                  title={
+                    autoDownloadPdf
+                      ? 'Guardar la factura en la base de datos y descargar directamente el PDF'
+                      : 'Guardar la factura en la base de datos sin enviarla aún a Verifactu'
+                  }
                 >
-                  <FontAwesomeIcon icon={faSave} />
-                  <span>Guardar Borrador</span>
+                  <FontAwesomeIcon icon={autoDownloadPdf ? faFilePdf : faSave} />
+                  <span>
+                    {isSubmitting && !submittingMsg.includes('Verifactu')
+                      ? 'Guardando...'
+                      : autoDownloadPdf
+                      ? 'Guardar y descargar PDF'
+                      : 'Guardar factura'}
+                  </span>
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => handleSubmit(e, 'Pendiente')}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0055ff] to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-950/50 flex items-center gap-2"
+                  disabled={isSubmitting}
+                  onClick={(e) => handleSubmit(e, true)}
+                  className={`px-5 py-2.5 rounded-xl text-white text-sm font-semibold shadow-lg flex items-center gap-2 cursor-pointer transition-all ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'
+                  } bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-950/50`}
+                  title={
+                    autoDownloadPdf
+                      ? 'Guardar la factura, remitirla formalmente a Verifactu y descargar directamente el PDF'
+                      : 'Guardar la factura y remitirla formalmente a Verifactu'
+                  }
                 >
-                  <FontAwesomeIcon icon={faCheckCircle} />
-                  <span>Emitir Factura</span>
+                  <FontAwesomeIcon icon={faShieldAlt} />
+                  <span>
+                    {isSubmitting && submittingMsg.includes('Verifactu')
+                      ? 'Enviando...'
+                      : autoDownloadPdf
+                      ? 'Guardar, emitir y descargar PDF'
+                      : 'Guardar y enviar a Verifactu'}
+                  </span>
                 </button>
               </>
             )}

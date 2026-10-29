@@ -12,6 +12,8 @@ import {
 import { Invoice, Settings } from '../types';
 import { getInvoices, getSettings } from '../services/database';
 import { formatCurrency } from '../utils/currency';
+import { formatearFechaEspanola } from '../utils/fechas';
+import { RendimientoYVideoSection } from '../components/RendimientoYVideoSection';
 
 interface DashboardPageProps {
   onNewInvoice: () => void;
@@ -248,6 +250,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
+      {/* Video Explicativo & Comparativa de Rendimiento (<3MB RAM vs Chrome) */}
+      <RendimientoYVideoSection theme={theme} onOpenGuide={onOpenGuide} />
+
       {/* Recent Invoices Table Preview */}
       <div className={`border rounded-3xl p-6 shadow-xl transition-colors ${cardBgClass}`}>
         <div className="flex items-center justify-between mb-6">
@@ -347,7 +352,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         isDark ? 'text-slate-400' : 'text-slate-500'
                       }`}
                     >
-                      {inv.issue_date}
+                      {formatearFechaEspanola(inv.issue_date)}
                     </td>
                     <td className="py-3 px-3 break-words">
                       <span

@@ -1,5 +1,5 @@
 {
-  "applicationId": "es.canarias.invoices.app",
+  "applicationId": "es.taratic.verifactu.gratuito",
   "defaultMode": "window",
   "port": 0,
   "url": "/index.html",
@@ -36,7 +36,7 @@
     }
   },
   "cli": {
-    "binaryName": "verifactu-gratuito-taratic",
+    "binaryName": "verifactu-gratuito",
     "resourcesPath": "/dist/",
     "clientLibrary": "/neutralino.js",
     "binaryVersion": "6.9.0",

@@ -34,6 +34,9 @@ import {
   faCalendarAlt,
   faFilter,
   faRotateLeft,
+  faFileExcel,
+  faTable,
+  faPlay,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -70,7 +73,10 @@ library.add(
   faAngleDoubleRight,
   faCalendarAlt,
   faFilter,
-  faRotateLeft
+  faRotateLeft,
+  faFileExcel,
+  faTable,
+  faPlay
 );
 
 export {
@@ -108,4 +114,7 @@ export {
   faCalendarAlt,
   faFilter,
   faRotateLeft,
+  faFileExcel,
+  faTable,
+  faPlay,
 };

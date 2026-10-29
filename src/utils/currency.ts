@@ -61,6 +61,7 @@ export function calculateInvoiceSummary(
   totalIgicCents: number;
   totalIrpfCents: number;
   grandTotalCents: number;
+  operatorNetCents: number;
   igicBreakdown: IgicBreakdownItem[];
 } {
   let totalBaseCents = 0;
@@ -86,7 +87,10 @@ export function calculateInvoiceSummary(
   }
 
   const totalIrpfCents = Math.round(totalBaseCents * ((irpfPercent || 0) / 100));
-  const grandTotalCents = totalBaseCents + totalIgicCents - totalIrpfCents;
+  // Total que paga el cliente: Base Imponible + IGIC/IVA
+  const grandTotalCents = totalBaseCents + totalIgicCents;
+  // Estimación de rendimiento neto para el operador considerando la retención IRPF
+  const operatorNetCents = grandTotalCents - totalIrpfCents;
 
   const igicBreakdown: IgicBreakdownItem[] = Array.from(breakdownMap.entries()).map(([rate, data]) => ({
     rate,
@@ -99,6 +103,7 @@ export function calculateInvoiceSummary(
     totalIgicCents,
     totalIrpfCents,
     grandTotalCents,
+    operatorNetCents,
     igicBreakdown,
   };
 }

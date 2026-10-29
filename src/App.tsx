@@ -5,13 +5,14 @@ import { DashboardPage } from './pages/DashboardPage';
 import { InvoicesPage } from './pages/InvoicesPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { InformeDeVentasPage } from './pages/InformeDeVentasPage';
 import { InvoiceFormModal } from './pages/InvoiceFormModal';
 import { VerifactuGuideModal } from './components/VerifactuGuideModal';
 import { Invoice, Settings } from './types';
 import { getSettings, initDatabase } from './services/database';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'invoices' | 'clients' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'invoices' | 'clients' | 'sales-report' | 'settings'>('dashboard');
   const [settings, setSettings] = useState<Settings | null>(null);
   const [dbReady, setDbReady] = useState(false);
 
@@ -110,6 +111,8 @@ export const App: React.FC = () => {
         return 'Panel Principal';
       case 'invoices':
         return 'Facturas e IGIC / IVA';
+      case 'sales-report':
+        return 'Generar informe de ventas';
       case 'clients':
         return 'Gestión de Clientes';
       case 'settings':
@@ -186,6 +189,8 @@ export const App: React.FC = () => {
               theme={theme}
             />
           )}
+
+          {activeTab === 'sales-report' && <InformeDeVentasPage theme={theme} />}
 
           {activeTab === 'clients' && <ClientsPage theme={theme} />}
 

@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "neu:run": "start bin/neutralino-win_x64.exe --load-dir-res --path=. --export-auth-info",
-    "neu:build": "neu build --release"
+    "neu:run": "start bin/verifactu-gratuito-win_x64.exe --load-dir-res --path=. --export-auth-info",
+    "patch:exe": "node scripts/patch-exe.cjs",
+    "neu:build": "neu build --release && node scripts/patch-exe.cjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -22,7 +23,8 @@
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "sql.js": "^1.12.0"
+    "sql.js": "^1.12.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@neutralinojs/neu": "^11.1.0",
@@ -34,6 +36,7 @@
     "@types/react-dom": "^18.3.5",
     "@types/sql.js": "^1.4.9",
     "@vitejs/plugin-react": "^4.3.4",
+    "rcedit": "^5.0.2",
     "tailwindcss": "^4.0.5",
     "typescript": "^5.7.3",
     "vite": "^6.1.0"

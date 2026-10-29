@@ -58,7 +58,7 @@ export interface Invoice {
 
 export interface AuditLogEntry {
   id: number;
-  action: 'CREATE' | 'RECTIFY' | 'VERIFACTU_SIGN';
+  action: 'CREATE' | 'RECTIFY' | 'VERIFACTU_SIGN' | 'SEND_VERIFACTU';
   invoice_id: number;
   timestamp: string;
   xml_hash: string;

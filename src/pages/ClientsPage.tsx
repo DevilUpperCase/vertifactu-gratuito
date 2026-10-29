@@ -20,6 +20,7 @@ import { deleteClient, getClients, saveClient } from '../services/database';
 import { Paginacion } from '../components/Paginacion';
 import { ClientCsvGuideModal } from '../components/ClientCsvGuideModal';
 import { exportClientsToCsv } from '../utils/csvClientHelper';
+import { formatearFechaEspanola } from '../utils/fechas';
 
 interface ClientsPageProps {
   theme?: 'dark' | 'light';
@@ -509,12 +510,12 @@ export const ClientsPage: React.FC<ClientsPageProps> = ({ theme = 'dark' }) => {
                         )}
                       </td>
                       <td className={`py-3 px-3 text-center text-xs break-words ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                        {client.created_at ? client.created_at.substring(0, 10) : '-'}
+                        {formatearFechaEspanola(client.created_at)}
                       </td>
                       <td className={`py-3 px-3 text-center text-xs font-medium break-words ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                         {client.last_invoice_date ? (
                           <span className={`inline-block px-2 py-0.5 rounded-lg ${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
-                            {client.last_invoice_date.substring(0, 10)}
+                            {formatearFechaEspanola(client.last_invoice_date)}
                           </span>
                         ) : (
                           <span className="text-slate-500 italic text-[11px]">Sin facturas</span>

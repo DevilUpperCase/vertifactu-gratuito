@@ -7,11 +7,12 @@ import {
   faCog,
   faShieldAlt,
   faEnvelope,
+  faFileExcel,
 } from '../utils/icons';
 
 interface SidebarProps {
-  activeTab: 'dashboard' | 'invoices' | 'clients' | 'settings';
-  setActiveTab: (tab: 'dashboard' | 'invoices' | 'clients' | 'settings') => void;
+  activeTab: 'dashboard' | 'invoices' | 'clients' | 'sales-report' | 'settings';
+  setActiveTab: (tab: 'dashboard' | 'invoices' | 'clients' | 'sales-report' | 'settings') => void;
   verifactuEnabled: boolean;
   onOpenGuide?: () => void;
   theme: 'dark' | 'light';
@@ -28,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: 'Panel Principal', icon: faChartLine },
     { id: 'invoices', label: 'Facturas', icon: faFileInvoice },
+    { id: 'sales-report', label: 'Generar informe de ventas', icon: faFileExcel },
     { id: 'clients', label: 'Clientes', icon: faUsers },
     { id: 'settings', label: 'Configuración', icon: faCog },
   ];

@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS Invoices (
     client_id INTEGER NOT NULL,
     issue_date TEXT NOT NULL,
     due_date TEXT DEFAULT '',
-    status TEXT CHECK(status IN ('Borrador', 'Pendiente', 'Pagada', 'Anulada')) DEFAULT 'Borrador',
+    status TEXT CHECK(status IN ('Borrador', 'Pendiente', 'Pagada', 'Anulada')) DEFAULT 'Pagada',
     verifactu_status TEXT CHECK(verifactu_status IN ('N/A', 'Pendiente', 'Firmado', 'Enviado')) DEFAULT 'N/A',
     total_base INTEGER NOT NULL DEFAULT 0,
     total_igic INTEGER NOT NULL DEFAULT 0,
@@ -547,26 +547,18 @@ export async function saveInvoice(
 }
 
 /**
- * Elimina una factura (solo permitido si está en estado Borrador o si Verifactu no exige bloqueo estricto).
+ * Elimina una factura y todas sus líneas de detalle asociadas de forma irreversible.
  */
 export async function deleteInvoice(id: number): Promise<{ success: boolean; message: string }> {
   const db = await initDatabase();
-  const settings = await getSettings();
   const inv = await getInvoiceById(id);
 
   if (!inv) return { success: false, message: 'Factura no encontrada' };
 
-  if (settings.verifactu_enabled && inv.status !== 'Borrador') {
-    return {
-      success: false,
-      message: 'Normativa Verifactu: No se pueden eliminar facturas emitidas. Debe generar una Factura Rectificativa.',
-    };
-  }
-
   db.run('DELETE FROM InvoiceLines WHERE invoice_id = ?', [id]);
   db.run('DELETE FROM Invoices WHERE id = ?', [id]);
   await autoSave();
-  return { success: true, message: 'Factura eliminada correctamente' };
+  return { success: true, message: 'Factura y todos sus datos relacionados eliminados permanentemente' };
 }
 
 /**
@@ -584,7 +576,7 @@ export async function duplicateInvoiceAsTemplate(invoiceId: number, newClientId:
     client_id: newClientId,
     issue_date: today,
     due_date: today,
-    status: 'Borrador',
+    status: 'Pagada',
     verifactu_status: 'N/A',
     total_base: original.total_base,
     total_igic: original.total_igic,
@@ -683,3 +675,81 @@ export async function addAuditLogEntry(entry: Omit<AuditLogEntry, 'id'>): Promis
   );
   await autoSave();
 }
+
+/**
+ * Obtiene el desglose consolidado de IGIC por tipos impositivos para un listado de facturas.
+ */
+export async function getIgicBreakdownByInvoiceIds(
+  invoiceIds: number[]
+): Promise<Array<{ rate: number; baseCents: number; igicCents: number }>> {
+  if (invoiceIds.length === 0) return [];
+  const db = await initDatabase();
+  const placeholders = invoiceIds.map(() => '?').join(',');
+  const res = db.exec(
+    `SELECT concept, quantity, unit_price, discount, igic_rate, total_line FROM InvoiceLines WHERE invoice_id IN (${placeholders})`,
+    invoiceIds
+  );
+  if (res.length === 0) return [];
+
+  const cols = res[0].columns;
+  const breakdownMap = new Map<number, { baseCents: number; igicCents: number }>();
+
+  res[0].values.forEach((row) => {
+    const obj: any = {};
+    cols.forEach((c, i) => {
+      obj[c] = row[i];
+    });
+    const rawTotal = (obj.quantity || 0) * (obj.unit_price || 0);
+    const discountAmount = Math.round(rawTotal * ((obj.discount || 0) / 100));
+    const lineBaseCents = rawTotal - discountAmount;
+    const lineIgicCents = Math.round(lineBaseCents * ((obj.igic_rate || 0) / 100));
+
+    const curr = breakdownMap.get(obj.igic_rate) || { baseCents: 0, igicCents: 0 };
+    breakdownMap.set(obj.igic_rate, {
+      baseCents: curr.baseCents + lineBaseCents,
+      igicCents: curr.igicCents + lineIgicCents,
+    });
+  });
+
+  return Array.from(breakdownMap.entries())
+    .map(([rate, data]) => ({ rate, ...data }))
+    .sort((a, b) => a.rate - b.rate);
+}
+
+export interface ConceptoRecurrente {
+  concept: string;
+  unit_price: number; // en céntimos
+  igic_rate: number;
+}
+
+/**
+ * Obtiene el listado de conceptos únicos utilizados en facturas anteriores,
+ * con su último precio unitario e IGIC, para permitir su reutilización rápida.
+ */
+export async function getRecentConcepts(): Promise<ConceptoRecurrente[]> {
+  const db = await initDatabase();
+  const query = `
+    SELECT 
+      concept, 
+      unit_price, 
+      igic_rate 
+    FROM InvoiceLines 
+    WHERE TRIM(concept) != '' 
+    GROUP BY concept 
+    ORDER BY MAX(id) DESC 
+    LIMIT 200
+  `;
+  const res = db.exec(query);
+  if (res.length === 0 || res[0].values.length === 0) return [];
+
+  const cols = res[0].columns;
+  return res[0].values.map((row) => {
+    const obj: any = {};
+    cols.forEach((col, idx) => {
+      obj[col] = row[idx];
+    });
+    return obj;
+  });
+}
+
+

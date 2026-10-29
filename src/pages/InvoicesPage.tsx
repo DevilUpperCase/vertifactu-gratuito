@@ -19,6 +19,9 @@ import {
   faCalendarAlt,
   faFilter,
   faRotateLeft,
+  faExclamationTriangle,
+  faInfoCircle,
+  faCheckCircle,
 } from '../utils/icons';
 import { Client, Invoice, Settings } from '../types';
 import {
@@ -31,6 +34,7 @@ import {
   getSettings,
 } from '../services/database';
 import { formatCurrency } from '../utils/currency';
+import { formatearFechaEspanola } from '../utils/fechas';
 import { generateInvoicePdf } from '../services/pdfGenerator';
 import { processVerifactuInvoice, VerifactuResult } from '../services/verifactu';
 import { Paginacion } from '../components/Paginacion';
@@ -76,6 +80,10 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
   const [templateInvoiceId, setTemplateInvoiceId] = useState<number | null>(null);
   const [templateClientId, setTemplateClientId] = useState<number | ''>('');
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+
+  // Estado del Modal de Eliminación Irreversible de Factura
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // XML Verifactu Inspection Modal
   const [isXmlModalOpen, setIsXmlModalOpen] = useState(false);
@@ -140,7 +148,8 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
       qrCodeDataUrl: verifactuData?.qrCodeDataUrl,
       xmlHash: verifactuData?.xmlHash,
     });
-    pdfDoc.save(`Factura_${selectedInvoiceForPdf.invoice_number}.pdf`);
+    const sanitizedNum = (selectedInvoiceForPdf.invoice_number || 'Factura').trim().replace(/[/\\?%*:|"<>]/g, '_');
+    pdfDoc.save(`Factura_${sanitizedNum}.pdf`);
   };
 
   // Duplicar Factura como Plantilla
@@ -166,9 +175,48 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
       )
     ) {
       try {
-        await createRectificationInvoice(invoiceId);
+        const newRectId = await createRectificationInvoice(invoiceId);
         await loadInvoicesData();
         onInvoiceSaved?.();
+
+        // Descargar automáticamente el PDF de la factura rectificativa emitida
+        if (settings) {
+          try {
+            const rectInvoice = await getInvoiceById(newRectId);
+            if (rectInvoice) {
+              let qrCodeDataUrl: string | undefined = undefined;
+              let xmlHash: string | undefined = undefined;
+
+              if (settings.verifactu_enabled) {
+                try {
+                  let certBinary: ArrayBuffer | undefined = undefined;
+                  if (settings.cert_path && window.Neutralino?.filesystem) {
+                    try {
+                      certBinary = await window.Neutralino.filesystem.readBinaryFile(settings.cert_path);
+                    } catch (e) {
+                      console.warn('Certificado no encontrado para rectificativa:', e);
+                    }
+                  }
+                  const vResult = await processVerifactuInvoice(rectInvoice, settings, certBinary);
+                  qrCodeDataUrl = vResult.qrCodeDataUrl;
+                  xmlHash = vResult.xmlHash;
+                } catch (vErr) {
+                  console.error('Error procesando Verifactu para rectificativa:', vErr);
+                }
+              }
+
+              const pdfDoc = generateInvoicePdf(rectInvoice, settings, {
+                showExcludingIgicColumn: false,
+                qrCodeDataUrl,
+                xmlHash,
+              });
+              const sanitizedNum = (rectInvoice.invoice_number || 'Factura_Rectificativa').trim().replace(/[/\\?%*:|"<>]/g, '_');
+              pdfDoc.save(`Factura_${sanitizedNum}.pdf`);
+            }
+          } catch (pdfErr) {
+            console.error('Error al generar y descargar el PDF de la rectificativa:', pdfErr);
+          }
+        }
       } catch (err) {
         console.error('Error al rectificar factura:', err);
         alert('No se pudo generar la factura rectificativa');
@@ -176,14 +224,24 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
     }
   };
 
-  // Eliminar factura
-  const handleDeleteInvoice = async (invoiceId: number) => {
-    const res = await deleteInvoice(invoiceId);
-    if (!res.success) {
-      alert(res.message);
-    } else {
-      await loadInvoicesData();
-      onInvoiceSaved?.();
+  // Confirmar y ejecutar eliminación irreversible de factura
+  const handleConfirmDelete = async () => {
+    if (!invoiceToDelete?.id) return;
+    try {
+      setIsDeleting(true);
+      const res = await deleteInvoice(invoiceToDelete.id);
+      if (!res.success) {
+        alert(res.message);
+      } else {
+        await loadInvoicesData();
+        onInvoiceSaved?.();
+        setInvoiceToDelete(null);
+      }
+    } catch (err) {
+      console.error('Error al eliminar la factura:', err);
+      alert('Ocurrió un error al eliminar la factura.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -307,6 +365,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                 }`}
               />
             </div>
+            {fechaEmisionDesde && (
+              <p className={`text-[10px] mt-0.5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                {formatearFechaEspanola(fechaEmisionDesde)} (DD/MM/YYYY)
+              </p>
+            )}
           </div>
 
           {/* Fecha Emisión: Hasta */}
@@ -330,6 +393,11 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                 }`}
               />
             </div>
+            {fechaEmisionHasta && (
+              <p className={`text-[10px] mt-0.5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                {formatearFechaEspanola(fechaEmisionHasta)} (DD/MM/YYYY)
+              </p>
+            )}
           </div>
 
           {/* Pills de Estado */}
@@ -407,7 +475,8 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                     <th className="py-3 px-3 font-semibold break-words">Número</th>
                     <th className="py-3 px-3 font-semibold break-words">Cliente</th>
                     <th className="py-3 px-3 font-semibold break-words">Emisión</th>
-                    <th className="py-3 px-3 font-semibold break-words">Estado</th>
+                    <th className="py-3 px-3 font-semibold break-words">Estado Factura</th>
+                    <th className="py-3 px-3 font-semibold break-words">Estado Veri*factu</th>
                     <th className="py-3 px-3 text-right font-semibold break-words">Base Imponible</th>
                     <th className="py-3 px-3 text-right font-semibold break-words">Total Factura</th>
                     <th className="py-3 px-3 text-center font-semibold break-words">Acciones</th>
@@ -449,8 +518,9 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                         {inv.client_name || 'N/A'}
                       </td>
                       <td className={`py-3 px-3 text-xs break-words ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                        {inv.issue_date}
+                        {formatearFechaEspanola(inv.issue_date)}
                       </td>
+                      {/* 1. Columna: Estado de Factura */}
                       <td className="py-3 px-3 break-words">
                         <span
                           className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
@@ -472,6 +542,41 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                           }`}
                         >
                           {inv.status}
+                        </span>
+                      </td>
+
+                      {/* 2. Columna: Estado Veri*factu */}
+                      <td className="py-3 px-3 break-words">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            inv.verifactu_status === 'Enviado'
+                              ? isDark
+                                ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                                : 'bg-blue-100 text-blue-800 border-blue-300'
+                              : inv.verifactu_status === 'Firmado'
+                              ? isDark
+                                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                : 'bg-purple-100 text-purple-800 border-purple-300'
+                              : inv.verifactu_status === 'Pendiente'
+                              ? isDark
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                              : isDark
+                              ? 'bg-zinc-800/80 text-zinc-400 border-zinc-700/60'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          <FontAwesomeIcon
+                            icon={
+                              inv.verifactu_status === 'Enviado'
+                                ? faShieldAlt
+                                : inv.verifactu_status === 'Pendiente'
+                                ? faExclamationTriangle
+                                : faInfoCircle
+                            }
+                            className="text-[10px]"
+                          />
+                          <span>{inv.verifactu_status || 'N/A'}</span>
                         </span>
                       </td>
                       <td className={`py-3 px-3 text-right font-medium text-xs break-words ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
@@ -542,10 +647,10 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                             </button>
                           )}
 
-                          {/* Eliminar (si borrador) */}
+                          {/* Eliminar factura (con modal de advertencia irreversible) */}
                           <button
-                            onClick={() => handleDeleteInvoice(inv.id!)}
-                            className={`p-1.5 rounded-lg transition-colors ${
+                            onClick={() => setInvoiceToDelete(inv)}
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                               isDark
                                 ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
                                 : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
@@ -662,6 +767,29 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
                     <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Cliente:</span>
                     <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{selectedInvoiceForPdf.client_name}</p>
                     <p className={isDark ? 'text-zinc-400' : 'text-slate-600'}>NIF: {selectedInvoiceForPdf.client_nif}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-3 border-t border-dashed border-zinc-700/40">
+                  <div>
+                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Fecha de Emisión:</span>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {formatearFechaEspanola(selectedInvoiceForPdf.issue_date)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Fecha Vencimiento:</span>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {formatearFechaEspanola(selectedInvoiceForPdf.due_date)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Estado Factura:</span>
+                    <p className="font-semibold text-emerald-400">{selectedInvoiceForPdf.status}</p>
+                  </div>
+                  <div>
+                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Estado Veri*factu:</span>
+                    <p className="font-semibold text-blue-400">{selectedInvoiceForPdf.verifactu_status || 'N/A'}</p>
                   </div>
                 </div>
 
@@ -882,6 +1010,135 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({
         </div>,
         document.body
       )}
+
+      {/* Modal de Advertencia de Eliminación Irreversible de Factura */}
+      {invoiceToDelete &&
+        createPortal(
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+            <div
+              className={`border rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transition-all ${
+                isDark ? 'bg-[#1e1f20] border-rose-500/40 text-zinc-100' : 'bg-white border-rose-300 text-slate-900'
+              }`}
+            >
+              {/* Cabecera del Modal de Advertencia */}
+              <div
+                className={`p-6 border-b flex items-start gap-4 ${
+                  isDark ? 'bg-rose-950/30 border-rose-900/40' : 'bg-rose-50 border-rose-200'
+                }`}
+              >
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-500 text-xl shrink-0">
+                  <FontAwesomeIcon icon={faExclamationTriangle} />
+                </div>
+                <div className="flex-1">
+                  <h3 className={`text-lg font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    ¿Eliminar factura definitivamente?
+                  </h3>
+                  <p className={`text-xs mt-1 font-medium ${isDark ? 'text-rose-300/90' : 'text-rose-700'}`}>
+                    Esta acción eliminará todos los datos relacionados y es completamente irreversible.
+                  </p>
+                </div>
+                <button
+                  onClick={() => !isDeleting && setInvoiceToDelete(null)}
+                  className={`p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer ${
+                    isDark ? 'hover:bg-zinc-800' : 'hover:bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+              </div>
+
+              {/* Contenido y Datos de la Factura a Eliminar */}
+              <div className="p-6 space-y-4 text-sm">
+                {/* Ficha Resumen de la Factura */}
+                <div
+                  className={`p-4 rounded-2xl border space-y-2 ${
+                    isDark ? 'bg-zinc-900/80 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-400 uppercase font-semibold">Factura:</span>
+                    <span className={`font-bold font-mono ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                      {invoiceToDelete.invoice_number}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-400 uppercase font-semibold">Cliente:</span>
+                    <span className="font-semibold">{invoiceToDelete.client_name || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-400 uppercase font-semibold">Fecha de Emisión:</span>
+                    <span>{formatearFechaEspanola(invoiceToDelete.issue_date)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs pt-2 border-t border-zinc-700/40">
+                    <span className="text-slate-400 uppercase font-semibold">Importe Total:</span>
+                    <span className="font-extrabold text-sm text-emerald-500">
+                      {formatCurrency(invoiceToDelete.grand_total)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Caja de Advertencia Detallada */}
+                <div
+                  className={`p-4 rounded-2xl border text-xs space-y-2 ${
+                    isDark
+                      ? 'bg-rose-950/20 border-rose-500/30 text-rose-200'
+                      : 'bg-rose-50/80 border-rose-300 text-rose-800'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1.5 text-rose-400">
+                    <FontAwesomeIcon icon={faShieldAlt} />
+                    <span>Aviso de eliminación permanente e irreversible</span>
+                  </div>
+                  <p>Al confirmar la eliminación, se borrarán de forma definitiva:</p>
+                  <ul className="list-disc list-inside space-y-1 pl-1 text-[11px] opacity-90">
+                    <li>Todas las líneas de detalle, conceptos y cantidades facturadas.</li>
+                    <li>Las bases imponibles y cuotas de IGIC/IVA asociadas.</li>
+                    <li>Cualquier registro de emisión acumulado vinculado a esta factura.</li>
+                  </ul>
+                  <p className="font-bold text-[11px] pt-1 text-rose-400">
+                    ⚠️ Esta acción no se puede deshacer ni recuperar bajo ninguna circunstancia.
+                  </p>
+                </div>
+              </div>
+
+              {/* Botones de Acción */}
+              <div
+                className={`p-5 border-t flex items-center justify-end gap-3 ${
+                  isDark ? 'bg-[#131314] border-zinc-800' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => setInvoiceToDelete(null)}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
+                    isDark
+                      ? 'border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                      : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleConfirmDelete}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg transition-all flex items-center gap-2 cursor-pointer ${
+                    isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+                  } ${
+                    isDark
+                      ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 shadow-rose-950/60 border border-rose-500/40'
+                      : 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-rose-700/25'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                  <span>{isDeleting ? 'Eliminando...' : 'Sí, eliminar definitivamente'}</span>
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
