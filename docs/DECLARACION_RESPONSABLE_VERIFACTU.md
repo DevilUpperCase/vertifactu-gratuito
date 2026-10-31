@@ -70,3 +70,4 @@ El presente documento constituye la certificación escrita reglamentaria del pro
 Firmado en fecha 2026 por el equipo de desarrollo de:  
 **Taratic Software — Proyecto Verifactu Gratuito**  
 *Licencia Libre y Código Abierto para Autónomos y Empresas de España.*
+

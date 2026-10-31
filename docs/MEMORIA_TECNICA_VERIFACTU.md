@@ -116,3 +116,4 @@ CREATE TABLE IF NOT EXISTS AuditLog (
 ```
 
 Este registro es de solo inserción (*append-only*), asegurando que cualquier evento relevante en el ciclo de vida del sistema quede documentado para inspecciones periciales o auditorías tributarias.
+

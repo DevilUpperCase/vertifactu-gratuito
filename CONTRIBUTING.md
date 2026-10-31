@@ -58,3 +58,4 @@ npm run neu:run
 5. Abre un **Pull Request** explicando detalladamente el cambio y los casos de prueba realizados.
 
 ¡Agradecemos enormemente cualquier aporte de la comunidad dev española e internacional! 🇪🇸✨
+

@@ -33,3 +33,4 @@ Si identificas una vulnerabilidad de seguridad en el software o en el cálculo d
    * Sistema operativo y versión de la aplicación afectada.
 
 Nos comprometemos a responder en un plazo máximo de 48 horas laborables, evaluar la gravedad y publicar un parche de corrección de forma prioritaria con mención de agradecimiento en las notas de la versión si así lo deseas.
+

@@ -90,3 +90,4 @@ Toda tu información (clientes, facturas, configuración e historial de auditor�
 
 * **Para hacer una copia de seguridad:** Simplemente copia el archivo `invoices_app.db` a un pendrive USB, disco externo o a tu carpeta de almacenamiento en la nube privada (Dropbox, Google Drive, OneDrive).
 * **Para restaurar:** Si cambias de ordenador, coloca tu archivo `invoices_app.db` en la carpeta de la aplicación y recuperarás la totalidad de tu historial de facturación de forma instantánea.
+

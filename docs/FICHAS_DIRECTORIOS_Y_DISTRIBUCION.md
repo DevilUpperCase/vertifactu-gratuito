@@ -157,3 +157,4 @@ Installers:
     InstallerType: portable
     InstallerUrl: https://github.com/DevilUpperCase/vertifactu-gratuito/releases/latest/download/verifactu-gratuito-win_x64.zip
 ```
+
