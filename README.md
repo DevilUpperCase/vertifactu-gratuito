@@ -83,6 +83,19 @@ Este software ha sido diseñado específicamente para cumplir con el **Real Decr
 
 ---
 
+## 📚 Documentación Oficial y Certificaciones
+
+Para facilitar la adopción, auditoría técnica y cumplimiento legal ante asesorías e inspecciones tributarias:
+
+- 📋 [**Declaración Responsable Verifactu (Art. 13 RD 1007/2023)**](docs/DECLARACION_RESPONSABLE_VERIFACTU.md): Certificado oficial del productor sobre inalterabilidad, SHA-256 y ausencia de doble uso.
+- 🔬 [**Memoria Técnica y Arquitectura del SIF**](docs/MEMORIA_TECNICA_VERIFACTU.md): Detalle técnico del encadenamiento criptográfico, código QR y persistencia SQLite in-process.
+- 📖 [**Guía de Usuario e Implantación para Autónomos y Pymes**](docs/GUIA_USUARIO_Y_AUTONOMOS.md): Manual paso a paso de uso, emisión de facturas, rectificativas y copias de seguridad.
+- 📦 [**Fichas de Publicación para Directorios y Sitios Web**](docs/FICHAS_DIRECTORIOS_Y_DISTRIBUCION.md): Textos redactados listos para registrar el software en AlternativeTo, Product Hunt, Softpedia, foros y comunidades.
+- 🔒 [**Política de Seguridad y Reporte Responsable**](SECURITY.md): Compromiso de privacidad zero-cloud y auditoría abierta.
+- 🤝 [**Guía de Contribución Open Source**](CONTRIBUTING.md): Instrucciones para colaborar en el desarrollo del software.
+
+---
+
 ## 🔒 Privacidad Absoluta: 100% Local y Sin Nube
 
 Tus datos fiscales, clientes y facturas son tu mayor activo confidencial.  
