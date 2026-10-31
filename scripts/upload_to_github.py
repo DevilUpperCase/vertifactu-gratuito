@@ -44,3 +44,4 @@ if res.status_code in (200, 201):
 else:
     print(f"[ERROR] Upload failed with code {res.status_code}")
     sys.exit(1)
+

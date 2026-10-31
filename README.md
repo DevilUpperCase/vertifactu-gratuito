@@ -27,13 +27,15 @@ Descarga la última versión compilada lista para usar sin necesidad de configur
 
 ---
 
-## 🎬 Demostración Oficial de la Aplicación (Product Tour en Vídeo)
+## 🎬 Guía de Uso Rápido y Flujo de Trabajo
 
-https://github.com/user-attachments/assets/a9c475b0-1f87-4030-adb4-20970f1ef5ea
+Aprende a configurar tu emisor, crear tu primera factura legal, calcular impuestos y generar el código QR oficial de la Agencia Tributaria en menos de 2 minutos:
 
-*Recorrido fidedigno del sistema en 1080p Full HD en Modo Oscuro nativo con puntero focal de alta visibilidad y pulsos de interacción: Demostración en tiempo real de consumo ultrabajo (< 3 MB de RAM vs 100-500 MB de una pestaña de Chrome), emisión instantánea de facturas legales, cálculo automático de IGIC/IVA y retención IRPF, generación de huella hash SHA-256 inmutable y código QR oficial de la Agencia Tributaria (AEAT).*
-
-📥 **[Descargar Vídeo Maestro de Demostración (1080p MP4 · 2.27 MB · Recorrido Optimizado)](https://github.com/user-attachments/assets/a9c475b0-1f87-4030-adb4-20970f1ef5ea)**
+### 📋 Funcionamiento en 4 Pasos Clave:
+1. **Configuración de Emisor:** Introduce NIF/CIF, Nombre o Razón Social y tu régimen tributario (**IVA** en Península/Baleares o **IGIC** en Canarias).
+2. **Creación de Facturas y Conceptos:** Añade tus clientes, conceptos, unidades, precios, tipos impositivos y retención IRPF (15%, 7%, etc.) con cálculo en tiempo real.
+3. **Encadenamiento Verifactu SHA-256:** El software calcula la huella digital criptográfica inalterable encadenada con la factura anterior según exige la ley.
+4. **Exportación a PDF y QR Oficial:** Genera e imprime al instante tu factura en PDF con el código QR legal verificado por la AEAT.
 
 ---
 

@@ -4,10 +4,13 @@ import {
   faShieldAlt,
   faCheckCircle,
   faExclamationTriangle,
-  faPlay,
-  faTimes,
   faDownload,
   faGlobe,
+  faFileInvoice,
+  faQrcode,
+  faLock,
+  faCog,
+  faFilePdf,
 } from '../utils/icons';
 
 interface RendimientoYVideoSectionProps {
@@ -20,35 +23,56 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
   onOpenGuide,
 }) => {
   const isDark = theme === 'dark';
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
-  // URL oficial del vídeo tour cargado en GitHub user-attachments
-  const [videoUrl, setVideoUrl] = useState<string>('https://github.com/user-attachments/assets/a9c475b0-1f87-4030-adb4-20970f1ef5ea');
-  const [activeChapter, setActiveChapter] = useState(0);
+  const [activeStep, setActiveStep] = useState(0);
 
   const cardBgClass = isDark
     ? 'bg-[#1e1f20] border-zinc-800 shadow-xl text-zinc-100'
     : 'bg-white border-slate-200 shadow-md text-slate-900';
 
-  const chapters = [
+  const steps = [
     {
       title: '1. Configuración de Emisor',
-      desc: 'Introduce tu NIF, Razón Social y régimen fiscal (IVA Península/Baleares o IGIC Canarias).',
-      duration: '0:35',
+      desc: 'Introduce tu NIF/CIF, Nombre o Razón Social y régimen fiscal (IVA Península/Baleares o IGIC Canarias).',
+      tag: 'Paso 1',
+      icon: faCog,
+      preview: {
+        badge: 'Emisor Configurado',
+        detail1: 'NIF: B35000000 • Régimen: IGIC / IVA',
+        detail2: 'Régimen inmutable Verifactu activo',
+      },
     },
     {
       title: '2. Emisión y Conceptos',
-      desc: 'Añade clientes, líneas de detalle, retención IRPF y descuentos con cálculo en tiempo real.',
-      duration: '0:48',
+      desc: 'Añade clientes, líneas de detalle, retención IRPF y descuentos con desglose automático en vivo.',
+      tag: 'Paso 2',
+      icon: faFileInvoice,
+      preview: {
+        badge: 'Cálculo en Tiempo Real',
+        detail1: 'Base Imponible + Impuestos + IRPF',
+        detail2: 'Validación automática de totales y redondeo',
+      },
     },
     {
       title: '3. Encadenamiento Hash SHA-256',
-      desc: 'Generación automática de la huella digital inalterable conforme al Real Decreto 1007/2023.',
-      duration: '0:25',
+      desc: 'Generación automática de la huella digital criptográfica inalterable conforme al Real Decreto 1007/2023.',
+      tag: 'Paso 3',
+      icon: faLock,
+      preview: {
+        badge: 'Huella Inmutable AEAT',
+        detail1: 'SHA-256 encadenado con la factura anterior',
+        detail2: 'Imposible modificar o borrar registros',
+      },
     },
     {
       title: '4. Código QR AEAT y PDF',
-      desc: 'Impresión y exportación inmediata en PDF con el QR oficial legible por la Agencia Tributaria.',
-      duration: '0:32',
+      desc: 'Impresión y exportación inmediata en PDF con el código QR legal verificado por la Agencia Tributaria.',
+      tag: 'Paso 4',
+      icon: faQrcode,
+      preview: {
+        badge: 'QR Oficial Generado',
+        detail1: 'Compatible con el validador móvil de la AEAT',
+        detail2: 'Descarga instantánea en PDF vectorial',
+      },
     },
   ];
 
@@ -294,22 +318,22 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
         </div>
       </div>
 
-      {/* 2. SECCIÓN DE VIDEO EXPLICATIVO Y TUTORIAL PASO A PASO */}
+      {/* 2. SECCIÓN DE GUÍA DE USO RÁPIDO Y FLUJO DE FACTURACIÓN */}
       <div className={`p-8 rounded-3xl border transition-all ${cardBgClass}`}>
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
-                <FontAwesomeIcon icon={faPlay} className="text-[10px]" />
-                DEMOSTRACIÓN OFICIAL Y GUÍA PASO A PASO
+                <FontAwesomeIcon icon={faShieldAlt} className="text-[10px]" />
+                FLUJO DE EMISIÓN LEGAL Y VERIFACTU
               </span>
-              <span className="text-xs font-semibold text-zinc-400">1080p Full HD</span>
+              <span className="text-xs font-semibold text-zinc-400">4 Pasos Clave</span>
             </div>
             <h3 className="text-2xl font-extrabold tracking-tight">
-              Demostración Oficial de la Aplicación (Product Tour en Vídeo)
+              Aprende a emitir facturas legales con Verifactu en menos de 2 minutos
             </h3>
             <p className={`text-sm mt-1 max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Recorrido completo en modo nativo con puntero focal de alta visibilidad: configuración de emisor, emisión de facturas con cálculo en vivo de IGIC o IVA, retención IRPF y generación automática de la huella inmutable SHA-256 con código QR de la AEAT.
+              Configura tu empresa, emite facturas con cálculo en vivo de IGIC o IVA, retención IRPF y genera automáticamente la huella inmutable SHA-256 con código QR de la AEAT.
             </p>
           </div>
 
@@ -327,62 +351,72 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
                 <span>Ver Guía AEAT Completa</span>
               </button>
             )}
-            <button
-              onClick={() => setVideoModalOpen(true)}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 flex items-center gap-2 transition-transform hover:scale-105"
-            >
-              <FontAwesomeIcon icon={faPlay} />
-              <span>Ver en Pantalla Completa</span>
-            </button>
           </div>
         </div>
 
-        {/* Video Player Preview and Chapter Steps Grid */}
+        {/* Interactive Steps and Live Feature Preview Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Native HTML5 Video Player (Like taratic-human-anatomy-3d) */}
-          <div className="lg:col-span-7">
+          {/* Visual Interactive Preview Box */}
+          <div className="lg:col-span-6">
             <div
-              className={`relative rounded-2xl overflow-hidden border shadow-2xl aspect-video flex flex-col justify-center items-center ${
-                isDark ? 'bg-black border-zinc-800' : 'bg-slate-900 border-slate-700 text-white'
+              className={`p-6 rounded-2xl border shadow-xl flex flex-col justify-between min-h-[300px] transition-all ${
+                isDark
+                  ? 'bg-gradient-to-br from-blue-950/40 via-zinc-900 to-black border-blue-500/30'
+                  : 'bg-blue-50/60 border-blue-200 text-slate-900'
               }`}
             >
-              <video
-                src={videoUrl}
-                controls
-                playsInline
-                preload="metadata"
-                className="w-full h-full object-contain bg-black"
-                title="Demostración Oficial Verifactu Gratuito"
-              />
-
-              {/* Bottom Telemetry Bar */}
-              <div className="w-full p-2.5 bg-zinc-950/90 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-slate-300 px-4">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between mb-4">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500 text-white uppercase tracking-wider">
+                  {steps[activeStep].tag}
+                </span>
+                <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Verifactu Gratuito • Product Tour Oficial</span>
-                </div>
+                  Verifactu AEAT Conforme
+                </span>
+              </div>
+
+              <div className="my-auto py-4 space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-emerald-400">RAM: 2.8 MB</span>
-                  <span className="font-mono">1080p • 60 FPS</span>
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40 text-blue-400 flex items-center justify-center text-xl shrink-0">
+                    <FontAwesomeIcon icon={steps[activeStep].icon} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold">{steps[activeStep].title}</h4>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                      {steps[activeStep].desc}
+                    </p>
+                  </div>
                 </div>
+
+                <div
+                  className={`p-4 rounded-xl border text-xs space-y-1.5 ${
+                    isDark ? 'bg-black/40 border-zinc-800 text-zinc-300' : 'bg-white border-blue-100 text-slate-700 shadow-xs'
+                  }`}
+                >
+                  <div className="font-semibold text-blue-400">{steps[activeStep].preview.badge}</div>
+                  <div className="font-mono text-[11px] opacity-90">{steps[activeStep].preview.detail1}</div>
+                  <div className="text-[11px] opacity-75">{steps[activeStep].preview.detail2}</div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400">
+                <span>Consumo RAM: &lt; 3 MB</span>
+                <span>SQLite Local Inmutable</span>
               </div>
             </div>
           </div>
 
           {/* Interactive Steps List */}
-          <div className="lg:col-span-5 space-y-3">
+          <div className="lg:col-span-6 space-y-3">
             <div className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">
-              Capítulos del Video Tour:
+              Pasos del Flujo de Emisión:
             </div>
-            {chapters.map((chap, idx) => (
+            {steps.map((step, idx) => (
               <div
                 key={idx}
-                onClick={() => {
-                  setActiveChapter(idx);
-                  setVideoModalOpen(true);
-                }}
+                onClick={() => setActiveStep(idx)}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                  activeChapter === idx
+                  activeStep === idx
                     ? isDark
                       ? 'bg-blue-600/10 border-blue-500/50 text-white shadow-md'
                       : 'bg-blue-50 border-blue-300 text-blue-900 shadow-sm'
@@ -395,7 +429,7 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
                   <span className="text-xs font-bold flex items-center gap-2">
                     <span
                       className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                        activeChapter === idx
+                        activeStep === idx
                           ? 'bg-blue-500 text-white'
                           : isDark
                           ? 'bg-zinc-800 text-zinc-400'
@@ -404,12 +438,15 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
                     >
                       {idx + 1}
                     </span>
-                    {chap.title}
+                    {step.title}
                   </span>
-                  <span className="text-[10px] font-mono opacity-70">{chap.duration}</span>
+                  <FontAwesomeIcon
+                    icon={step.icon}
+                    className={`text-xs ${activeStep === idx ? 'text-blue-400' : 'opacity-40'}`}
+                  />
                 </div>
                 <p className={`text-xs pl-7 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  {chap.desc}
+                  {step.desc}
                 </p>
               </div>
             ))}
@@ -446,78 +483,6 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
           </a>
         </div>
       </div>
-
-      {/* Video Modal Player (Native HTML5 Video Player) */}
-      {videoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div
-            className={`w-full max-w-5xl rounded-3xl border overflow-hidden shadow-2xl flex flex-col ${
-              isDark ? 'bg-[#18191a] border-zinc-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-            }`}
-          >
-            {/* Modal Header */}
-            <div className="p-4 sm:p-6 border-b flex items-center justify-between">
-              <div>
-                <h4 className="text-lg font-bold">Demostración Oficial de la Aplicación (Product Tour en Vídeo)</h4>
-                <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  Capítulo: {chapters[activeChapter].title} • Cumplimiento Ley Antifraude AEAT • &lt; 3 MB RAM
-                </p>
-              </div>
-              <button
-                onClick={() => setVideoModalOpen(false)}
-                className={`p-2 rounded-xl transition-colors ${
-                  isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500'
-                }`}
-              >
-                <FontAwesomeIcon icon={faTimes} className="text-lg" />
-              </button>
-            </div>
-
-            {/* Video Container (Native HTML5 Player) */}
-            <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-              <video
-                src={videoUrl}
-                controls
-                autoPlay
-                playsInline
-                className="w-full h-full object-contain"
-                title="Tutorial Verifactu Gratuito"
-              />
-            </div>
-
-            {/* Modal Footer */}
-            <div
-              className={`p-4 sm:p-6 border-t flex flex-wrap items-center justify-between gap-4 text-xs ${
-                isDark ? 'bg-zinc-950/60' : 'bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-semibold">Menos de 3MB de RAM verificado frente a los 100-500MB de una pestaña de Chrome</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <a
-                  href="https://github.com/DevilUpperCase/vertifactu-gratuito/releases"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 transition-colors"
-                >
-                  <FontAwesomeIcon icon={faDownload} />
-                  <span>Descargar Actualizaciones</span>
-                </a>
-                <button
-                  onClick={() => setVideoModalOpen(false)}
-                  className={`px-4 py-2 rounded-xl border font-semibold ${
-                    isDark ? 'border-zinc-700 hover:bg-zinc-800' : 'border-slate-300 hover:bg-slate-100'
-                  }`}
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
