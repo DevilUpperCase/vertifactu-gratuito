@@ -7,7 +7,7 @@
 [![Privacidad](https://img.shields.io/badge/Datos-100%25%20Locales%20(SQLite)-purple.svg)](#privacidad-y-seguridad)
 
 > **El software de facturación adaptado a Verifactu y a la Ley Antifraude más ligero y rápido de España.**  
-> Consume **menos de 3 MB de memoria RAM** (hasta **133 veces menos** que una sola pestaña de Google Chrome).  
+> Consume **menos de 3 MB de memoria RAM** (mientras que **una pestaña de Google Chrome consume de media entre 100 MB y 500 MB de memoria RAM**).  
 > **100% gratuito**, sin suscripciones mensuales, sin telemetría y totalmente funcional sin conexión a Internet (**offline**).
 
 ---
@@ -27,17 +27,13 @@ Descarga la última versión compilada lista para usar sin necesidad de configur
 
 ---
 
-## 🎬 Video Explicativo: Aprende a Facturar en 2 Minutos
+## 🎬 Demostración Oficial de la Aplicación (Product Tour en Vídeo)
 
-Aprende a configurar tu emisor, crear tu primera factura legal, calcular impuestos y generar el código QR oficial de la Agencia Tributaria en menos de 2 minutos:
+https://github.com/user-attachments/assets/a9c475b0-1f87-4030-adb4-20970f1ef5ea
 
-[![Ver Tutorial en Video](https://img.shields.io/badge/%E2%96%B6%EF%B8%8F-Ver%20Video%20Tutorial%20Paso%20a%20Paso-red?style=for-the-badge&logo=youtube)](https://github.com/DevilUpperCase/vertifactu-gratuito)
+*Recorrido fidedigno del sistema en 1080p Full HD en Modo Oscuro nativo con puntero focal de alta visibilidad y pulsos de interacción: Demostración en tiempo real de consumo ultrabajo (< 3 MB de RAM vs 100-500 MB de una pestaña de Chrome), emisión instantánea de facturas legales, cálculo automático de IGIC/IVA y retención IRPF, generación de huella hash SHA-256 inmutable y código QR oficial de la Agencia Tributaria (AEAT).*
 
-### Contenido del Tutorial en 4 Pasos:
-1. **Configuración de Emisor:** Introduce NIF/CIF, Nombre o Razón Social y tu régimen tributario (**IVA** en Península/Baleares o **IGIC** en Canarias).
-2. **Creación de Facturas y Conceptos:** Añade tus clientes, conceptos, unidades, precios, tipos impositivos y retención IRPF (15%, 7%, etc.).
-3. **Encadenamiento Verifactu SHA-256:** El software calcula la huella digital criptográfica inalterable encadenada con la factura anterior según exige la ley.
-4. **Exportación a PDF y QR Oficial:** Genera e imprime al instante tu factura en PDF con el código QR legal verificado por la AEAT.
+📥 **[Descargar Vídeo Maestro de Demostración (1080p MP4 · 2.27 MB · Recorrido Optimizado)](https://github.com/user-attachments/assets/a9c475b0-1f87-4030-adb4-20970f1ef5ea)**
 
 ---
 
@@ -46,15 +42,17 @@ Aprende a configurar tu emisor, crear tu primera factura legal, calcular impuest
 ¿Tienes un ordenador antiguo en el taller, un TPV modesto en el mostrador o un portátil de gama básica?  
 A diferencia de los programas de facturación convencionales construidos con Electron o plataformas web pesadas, **Verifactu Gratuito está diseñado con un motor nativo ultraligero y SQLite WASM en memoria/disco local**.
 
+> 💡 **Dato clave de rendimiento:** Una pestaña de Google Chrome consume de media entre **100 MB y 500 MB de memoria RAM** (muestra media de 374,3 MB en uso normal). Verifactu Gratuito opera con **menos de 3 MB de RAM** (2,8 MB en reposo y uso activo), lo que lo hace hasta **133 veces más ligero y rápido**.
+
 ### 📊 Comparativa Real de Consumo en Administrador de Tareas (Windows Task Manager)
 
 | Parámetro / Característica | ⚡ **Verifactu Gratuito (Taratic)** | 🌐 **1 Pestaña Google Chrome** | 💼 **Software Clásico (Electron / Web)** |
 | :--- | :---: | :---: | :---: |
-| **Consumo de Memoria RAM** | **2,8 MB** *(Menos de 3 MB)* | **374,3 MB** *(¡133× más consumo!)* | **350 MB – 550 MB** |
+| **Consumo de Memoria RAM** | **2,8 MB** *(Menos de 3 MB)* | **100 MB – 500 MB** *(Media: 374,3 MB)* | **350 MB – 550 MB** |
 | **Carga de CPU en Reposo** | **0.0%** *(Impacto nulo)* | 1.5% – 5.0% *(Hilos JS continuos)* | 2.0% – 7.0% |
 | **Apto para Ordenadores Viejos / TPVs** | **✓ 100% Fluido** *(Desde 2 GB RAM)* | ⚠️ Congela pestañas y ralentiza el PC | ❌ Requiere equipos potentes |
-| **Tamaño del Programa en Disco** | **~12 MB** | &gt; 500 MB *(Navegador + caché)* | 200 MB – 600 MB |
-| **Tiempo de Arranque** | **&lt; 0.15 segundos** | 2.0 – 5.0 segundos | 3.0 – 8.0 segundos |
+| **Tamaño del Programa en Disco** | **~12 MB** | > 500 MB *(Navegador + caché)* | 200 MB – 600 MB |
+| **Tiempo de Arranque** | **< 0.15 segundos** | 2.0 – 5.0 segundos | 3.0 – 8.0 segundos |
 | **Funcionamiento Sin Internet (Offline)** | **✓ 100% Operativo** | ❌ Requiere conexión obligatoria | ❌ Caídas si falla el servidor |
 | **Privacidad de Datos Fiscales** | **✓ 100% en tu equipo** *(Cero fugas)* | ⚠️ Expuesto a extensiones del navegador | ⚠️ Datos en la nube de terceros |
 | **Coste de Licencia** | **Gratis para siempre (Open Source)** | Navegador gratuito | 15€ a 50€ al mes por suscripción |
@@ -62,7 +60,7 @@ A diferencia de los programas de facturación convencionales construidos con Ele
 ```
 Consumo de Memoria RAM Comparado:
 [■] 2.8 MB               Verifactu Gratuito (Taratic)
-[■■■■■■■■■■■■■■■■■■■■■■] 374.3 MB            Pestaña estándar de Google Chrome (133x)
+[■■■■■■■■■■■■■■■■■■■■■■] 100 - 500 MB        Pestaña estándar de Google Chrome (Media ~374 MB, 133x)
 [■■■■■■■■■■■■■■■■■■■■■■■■■■■] 450.0 MB       Software Electron / SaaS habitual (160x)
 ```
 
@@ -135,7 +133,7 @@ npm run neu:build
 Sí. El proyecto es de código abierto con licencia libre. No existen límites de facturas, marcas de agua ni suscripciones ocultas.
 
 ### ¿Funciona en un ordenador viejo o con pocos recursos?
-Totalmente. Al consumir menos de 3 MB de memoria RAM y no sobrecargar la CPU, funciona de manera instantánea incluso en ordenadores con más de 10 años o TPVs con especificaciones básicas.
+Totalmente. Al consumir menos de 3 MB de memoria RAM (frente a los 100-500 MB que consume una sola pestaña de Google Chrome) y no sobrecargar la CPU, funciona de manera instantánea incluso en ordenadores con más de 10 años o TPVs con especificaciones básicas.
 
 ### ¿Puedo emitir facturas tanto con IVA como con IGIC de Canarias?
 Sí. Desde el panel de Configuración puedes alternar entre el régimen de IVA (Península y Baleares) y el régimen de IGIC (Canarias), personalizando los porcentajes aplicables a tus productos o servicios.

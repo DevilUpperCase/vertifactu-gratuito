@@ -18,6 +18,8 @@ dist-ssr/
 bin/
 *-release/
 *.zip
+*.mp4
+test_preview.png
 
 # Environment
 .env

@@ -21,7 +21,8 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
 }) => {
   const isDark = theme === 'dark';
   const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string>('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'); // Placeholder de alta calidad
+  // URL oficial del vídeo tour cargado en GitHub user-attachments
+  const [videoUrl, setVideoUrl] = useState<string>('https://github.com/user-attachments/assets/a9c475b0-1f87-4030-adb4-20970f1ef5ea');
   const [activeChapter, setActiveChapter] = useState(0);
 
   const cardBgClass = isDark
@@ -73,8 +74,13 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
               Rendimiento Ultraligero: Facturación que no ralentiza tu equipo
             </h3>
             <p className={`text-sm mt-1 max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Diseñado con arquitectura nativa webview y motor SQLite local in-process. Consume más de{' '}
-              <strong className={isDark ? 'text-white' : 'text-slate-900'}>133 veces menos memoria RAM</strong> que una sola pestaña de Google Chrome, garantizando fluidez total en cualquier PC o portátil modesto.
+              Diseñado con arquitectura nativa webview y motor SQLite local in-process.{' '}
+              <strong className={isDark ? 'text-white' : 'text-slate-900'}>
+                Una pestaña de Google Chrome consume de media entre 100 MB y 500 MB de memoria RAM
+              </strong>
+              , mientras que Verifactu Gratuito opera con{' '}
+              <strong className="text-emerald-400">menos de 3 MB (2.8 MB)</strong> en reposo y uso activo (hasta{' '}
+              <strong className={isDark ? 'text-white' : 'text-slate-900'}>133 veces menos consumo</strong>), garantizando fluidez total en cualquier PC o portátil modesto.
             </p>
           </div>
 
@@ -117,7 +123,7 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
               </span>
             </div>
             <p className={`text-xs mt-2 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Impacto imperceptible en el sistema. 0% CPU en reposo y arranque en 0.1s.
+              Impacto imperceptible en el sistema. 0% CPU en reposo y arranque instantáneo en 0.1s.
             </p>
             {/* Visual Bar */}
             <div className="mt-4 w-full bg-zinc-800/60 rounded-full h-3 overflow-hidden p-0.5">
@@ -125,7 +131,7 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
             </div>
             <div className="flex justify-between text-[10px] mt-1 text-emerald-400 font-mono">
               <span>0.7% del límite base</span>
-              <span>Ultrarrápido</span>
+              <span>Ultrarrápido y Estable</span>
             </div>
           </div>
 
@@ -143,17 +149,17 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
                 Pestaña Google Chrome
               </span>
               <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                133× más pesado
+                Media 100 - 500 MB
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black text-amber-400 tracking-tight">374.3 MB</span>
+              <span className="text-3xl font-black text-amber-400 tracking-tight">100 – 500 MB</span>
               <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                RAM por pestaña
+                (Media: 374 MB)
               </span>
             </div>
             <p className={`text-xs mt-2 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Una sola pestaña web consume cientos de MB de memoria y subprocesos JS constantes.
+              Una pestaña de Google Chrome consume de media entre 100 MB y 500 MB de memoria RAM por proceso.
             </p>
             {/* Visual Bar */}
             <div className="mt-4 w-full bg-zinc-800/60 rounded-full h-3 overflow-hidden p-0.5">
@@ -182,7 +188,7 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black text-rose-400 tracking-tight">450+ MB</span>
+              <span className="text-3xl font-black text-rose-400 tracking-tight">350 – 550 MB</span>
               <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                 RAM habitual
               </span>
@@ -230,7 +236,9 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
                 <td className="py-3 px-4 bg-emerald-500/10 font-black text-emerald-400 border-x border-emerald-500/20">
                   2.8 MB (Menos de 3 MB)
                 </td>
-                <td className="py-3 px-4 text-amber-400 font-medium">374.3 MB (133× más consumo)</td>
+                <td className="py-3 px-4 text-amber-400 font-medium">
+                  De media entre 100 MB y 500 MB (muestra: 374.3 MB)
+                </td>
                 <td className="py-3 px-4 text-rose-400 font-medium">350 MB – 550 MB</td>
               </tr>
               <tr>
@@ -293,15 +301,15 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
                 <FontAwesomeIcon icon={faPlay} className="text-[10px]" />
-                VIDEO EXPLICATIVO Y GUÍA PASO A PASO
+                DEMOSTRACIÓN OFICIAL Y GUÍA PASO A PASO
               </span>
-              <span className="text-xs font-semibold text-zinc-400">Duración: 2 min</span>
+              <span className="text-xs font-semibold text-zinc-400">1080p Full HD</span>
             </div>
             <h3 className="text-2xl font-extrabold tracking-tight">
-              Aprende a emitir facturas legales con Verifactu en menos de 2 minutos
+              Demostración Oficial de la Aplicación (Product Tour en Vídeo)
             </h3>
             <p className={`text-sm mt-1 max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Descubre cómo configurar tu empresa, emitir facturas con desglose automático de IGIC o IVA, calcular IRPF y generar la huella digital SHA-256 con el código QR oficial de la Agencia Tributaria.
+              Recorrido completo en modo nativo con puntero focal de alta visibilidad: configuración de emisor, emisión de facturas con cálculo en vivo de IGIC o IVA, retención IRPF y generación automática de la huella inmutable SHA-256 con código QR de la AEAT.
             </p>
           </div>
 
@@ -324,48 +332,34 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
               className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 flex items-center gap-2 transition-transform hover:scale-105"
             >
               <FontAwesomeIcon icon={faPlay} />
-              <span>Ver Video Tutorial</span>
+              <span>Ver en Pantalla Completa</span>
             </button>
           </div>
         </div>
 
         {/* Video Player Preview and Chapter Steps Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Video Mockup / Interactive Frame */}
+          {/* Native HTML5 Video Player (Like taratic-human-anatomy-3d) */}
           <div className="lg:col-span-7">
             <div
-              className={`relative rounded-2xl overflow-hidden border shadow-2xl aspect-video cursor-pointer group flex items-center justify-center ${
+              className={`relative rounded-2xl overflow-hidden border shadow-2xl aspect-video flex flex-col justify-center items-center ${
                 isDark ? 'bg-black border-zinc-800' : 'bg-slate-900 border-slate-700 text-white'
               }`}
-              onClick={() => setVideoModalOpen(true)}
             >
-              {/* Animated Background Simulation */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/80 via-slate-950 to-indigo-950/70" />
-              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" />
-
-              {/* Central Play Button */}
-              <div className="relative z-10 flex flex-col items-center text-center p-6 space-y-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xl shadow-xl shadow-blue-500/40 group-hover:scale-110 transition-transform duration-300">
-                  <FontAwesomeIcon icon={faPlay} className="ml-1" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white group-hover:text-blue-300 transition-colors">
-                    Reproducir Tutorial Completo
-                  </h4>
-                  <p className="text-xs text-slate-300 max-w-sm mt-1">
-                    Capítulo activo: <strong className="text-white">{chapters[activeChapter].title}</strong>
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-white/10 backdrop-blur-md text-white border border-white/20">
-                  ▶ Haz clic para abrir el reproductor
-                </span>
-              </div>
+              <video
+                src={videoUrl}
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full h-full object-contain bg-black"
+                title="Demostración Oficial Verifactu Gratuito"
+              />
 
               {/* Bottom Telemetry Bar */}
-              <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent flex items-center justify-between text-[11px] text-slate-300 px-4">
+              <div className="w-full p-2.5 bg-zinc-950/90 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-slate-300 px-4">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span>Verifactu Gratuito v1.0 • Tutorial HD</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Verifactu Gratuito • Product Tour Oficial</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-emerald-400">RAM: 2.8 MB</span>
@@ -378,7 +372,7 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
           {/* Interactive Steps List */}
           <div className="lg:col-span-5 space-y-3">
             <div className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">
-              Contenido del Video Tutorial:
+              Capítulos del Video Tour:
             </div>
             {chapters.map((chap, idx) => (
               <div
@@ -453,20 +447,20 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
         </div>
       </div>
 
-      {/* Video Modal Player */}
+      {/* Video Modal Player (Native HTML5 Video Player) */}
       {videoModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in">
           <div
-            className={`w-full max-w-4xl rounded-3xl border overflow-hidden shadow-2xl flex flex-col ${
+            className={`w-full max-w-5xl rounded-3xl border overflow-hidden shadow-2xl flex flex-col ${
               isDark ? 'bg-[#18191a] border-zinc-800 text-white' : 'bg-white border-slate-200 text-slate-900'
             }`}
           >
             {/* Modal Header */}
             <div className="p-4 sm:p-6 border-b flex items-center justify-between">
               <div>
-                <h4 className="text-lg font-bold">Tutorial Verifactu Gratuito (Paso a Paso)</h4>
+                <h4 className="text-lg font-bold">Demostración Oficial de la Aplicación (Product Tour en Vídeo)</h4>
                 <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  Capítulo: {chapters[activeChapter].title} • Cumplimiento Ley Antifraude AEAT
+                  Capítulo: {chapters[activeChapter].title} • Cumplimiento Ley Antifraude AEAT • &lt; 3 MB RAM
                 </p>
               </div>
               <button
@@ -479,14 +473,15 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
               </button>
             </div>
 
-            {/* Video Container */}
+            {/* Video Container (Native HTML5 Player) */}
             <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-              <iframe
-                className="w-full h-full border-0"
+              <video
                 src={videoUrl}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
                 title="Tutorial Verifactu Gratuito"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
               />
             </div>
 
@@ -497,8 +492,8 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span className="font-semibold">Menos de 3MB de RAM verificado</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-semibold">Menos de 3MB de RAM verificado frente a los 100-500MB de una pestaña de Chrome</span>
               </div>
               <div className="flex items-center gap-3">
                 <a
@@ -526,4 +521,3 @@ export const RendimientoYVideoSection: React.FC<RendimientoYVideoSectionProps> =
     </div>
   );
 };
-
